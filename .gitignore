@@ -1,0 +1,20 @@
+node_modules/
+.netlify
+
+#Ignore environment-specific files
+.env
+.env.local
+.env.*.local
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore editor-specific files
+.vscode/
+.idea/
+
+# Ignore package-lock.json for npm
+package-lock.json 
+#Ignore yarn.lock for Yarn
+yarn.lock
