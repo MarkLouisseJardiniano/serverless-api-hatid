@@ -3,6 +3,14 @@ const RecipesModel = require('../models/recipe');
 
 const router = express.Router();
 // GET all recipe
+router.get('/', async (req, res) => {
+    try {
+        const recipes = await RecipesModel.find();
+        res.json(recipes);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+})
 // GET all recipes or search by ingredients
 router.get('/:ingredients', async (req, res) => {
     try {
@@ -32,8 +40,6 @@ router.get('/cuisine/:cuisine', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
-
-
 // GET a single recipe by ID
 router.get('/:id', getRecipe, (req, res) => { 
     // Send the retrieved recipe as the response
