@@ -3,23 +3,37 @@ const RecipesModel = require('../models/recipe');
 
 const router = express.Router();
 // GET all recipe
-router.get('/', async (req, res) => {
+// GET all recipes or search by ingredients
+router.get('/:ingredients', async (req, res) => {
     try {
-        const recipes = await RecipesModel.find();
+        // Check if ingredients query parameter exists
+        if (!req.params.ingredients) {
+            // If not, return a 400 Bad Request response
+            return res.status(400).json({ message: 'Missing ingredients query parameter' });
+        }
+        
+        // Use regular expression to perform case-insensitive search for ingredients
+        const recipes = await RecipesModel.find({ ingredients: { $regex: req.params.ingredients, $options: 'i' } });
+        
+        // Send the matched recipes as the response
         res.json(recipes);
     } catch (err) {
+        // Handle any errors
         res.status(500).json({ message: err.message });
     }
 });
-// GET a single recipe
+
+// GET a single recipe by ID
 router.get('/:id', getRecipe, (req, res) => { 
-    res.json(res.recipe);
+    // Send the retrieved recipe as the response
+    res.json(res.recipes);
 });
 
 // Create a new author
 router.post('/', async (req, res) => {
     try {
-        if (!req.body.name || !req.body.ingredients || !req.body.cuisine) {
+        const {name, ingredients, cuisine} = req.body;
+        if (!name || !ingredients || !cuisine) {
             return res.status(400).json({ message: 'Name, ingredients, and cuisine are required' });
         }
         
@@ -60,14 +74,16 @@ router.put('/:id', getRecipe, async (req, res) => {
 });
 
 // Delete an author
+// Delete an author
 router.delete('/:id', getRecipe, async (req, res) => {
     try {
-        await res.recipe.remove();
+        await RecipesModel.deleteOne({ _id: req.params.id });
         res.json({ message: 'Recipe deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 // Middleware function to get a single author by ID
 async function getRecipe(req, res, next) {
