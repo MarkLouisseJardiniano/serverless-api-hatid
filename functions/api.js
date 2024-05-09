@@ -1,6 +1,6 @@
 const express = require('express');
 const serverless = require('serverless-http');
-const router = require('./routes/author');
+const router = require('./routes/recipe');
 const mongoose = require('mongoose');
 const cors =  require('cors');
 
@@ -9,7 +9,7 @@ const app = express();
 // your mongoDB Cloud URL
 
 const dbCloudUrl =
-'mongodb+srv://Mawi:Mawi21@cluster0.twni9tv.mongodb.net/authors?retryWrites=true&w=majority&appName=Cluster0'; // your mongoDB Cloud URL
+'mongodb+srv://Mawi:Mawi21@cluster0.twni9tv.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0'; // your mongoDB Cloud URL
 
 const dbLocalUrl = 'mongodb://localhost:27017/authors';
 
