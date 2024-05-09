@@ -23,6 +23,17 @@ router.get('/:ingredients', async (req, res) => {
     }
 });
 
+router.get('/cuisine/:cuisine', async (req, res) => {
+    try {
+        const cuisine = req.params.cuisine.toLowerCase();
+        const recipes = await RecipesModel.find({ cuisine: cuisine });
+        res.json(recipes);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
 // GET a single recipe by ID
 router.get('/:id', getRecipe, (req, res) => { 
     // Send the retrieved recipe as the response
