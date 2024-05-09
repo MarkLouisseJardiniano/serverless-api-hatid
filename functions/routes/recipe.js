@@ -23,7 +23,7 @@ router.get('/:ingredients', async (req, res) => {
     }
 });
 
-router.get('/:cuisine', async (req, res) => {
+router.get('/cuisine/:cuisine', async (req, res) => {
     try {
         const cuisine = req.params.cuisine.toLowerCase();
         const recipes = await RecipesModel.find({ cuisine: cuisine });
