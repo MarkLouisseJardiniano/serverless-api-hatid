@@ -88,12 +88,13 @@ router.put('/:id', getRecipe, async (req, res) => {
 // Delete an author
 router.delete('/:id', getRecipe, async (req, res) => {
     try {
-        await RecipesModel.deleteOne({ _id: req.params.id });
+        await res.recipe.deleteOne(); // Use the retrieved recipe object to delete it
         res.json({ message: 'Recipe deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 
 // Middleware function to get a single author by ID
