@@ -12,23 +12,16 @@ router.get('/', async (req, res) => {
     }
 })
 // GET all recipes or search by ingredients
-// GET all recipes or search by ingredients and/or cuisine
-router.get('/', async (req, res) => {
+router.get('/:ingredients', async (req, res) => {
     try {
-        let query = {};
-
         // Check if ingredients query parameter exists
-        if (req.query.ingredients) {
-            query.ingredients = { $regex: req.query.ingredients, $options: 'i' };
+        if (!req.params.ingredients) {
+            // If not, return a 400 Bad Request response
+            return res.status(400).json({ message: 'Missing ingredients query parameter' });
         }
-
-        // Check if cuisine query parameter exists
-        if (req.query.cuisine) {
-            query.cuisine = req.query.cuisine.toLowerCase();
-        }
-
-        // Use the query object to filter recipes
-        const recipes = await RecipesModel.find(query);
+        
+        // Use regular expression to perform case-insensitive search for ingredients
+        const recipes = await RecipesModel.find({ ingredients: { $regex: req.params.ingredients, $options: 'i' } });
         
         // Send the matched recipes as the response
         res.json(recipes);
@@ -38,6 +31,15 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/:cuisine', async (req, res) => {
+    try {
+        const cuisine = req.params.cuisine.toLowerCase();
+        const recipes = await RecipesModel.find({ cuisine: cuisine });
+        res.json(recipes);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
 // GET a single recipe by ID
 router.get('/:id', getRecipe, (req, res) => { 
     // Send the retrieved recipe as the response
