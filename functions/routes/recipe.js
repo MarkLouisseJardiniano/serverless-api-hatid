@@ -14,29 +14,21 @@ router.get('/', async (req, res) => {
 // GET all recipes or search by ingredients
 router.get('/', async (req, res) => {
     try {
-        // Check if query parameter exists
-        if (!req.params.query) {
-            // If not, return all recipes
-            const recipes = await RecipesModel.find();
-            res.json(recipes);
-            return;
+        let query = {};
+
+        if (req.query.type === 'ingredients') {
+            query = { ingredients: { $regex: req.query.query, $options: 'i' } };
+        } else if (req.query.type === 'cuisine') {
+            query = { cuisine: { $regex: req.query.query, $options: 'i' } };
         }
-        
-        // Use regular expression to perform case-insensitive search for ingredients or cuisine
-        const recipes = await RecipesModel.find({
-            $or: [
-                { ingredients: { $regex: req.params.query, $options: 'i' } },
-                { cuisine: { $regex: req.params.query, $options: 'i' } }
-            ]
-        });
-        
-        // Send the matched recipes as the response
+
+        const recipes = await RecipesModel.find(query);
         res.json(recipes);
     } catch (err) {
-        // Handle any errors
         res.status(500).json({ message: err.message });
     }
 });
+
 
 // GET a single recipe by ID
 router.get('/:id', getRecipe, (req, res) => { 
