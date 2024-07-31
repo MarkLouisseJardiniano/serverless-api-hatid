@@ -2,8 +2,8 @@ const geolib = require('geolib');
 
 function calculateDistance(pickupLocation, destinationLocation) {
     const distance = geolib.getDistance(
-        { latitude: pickupLocation.lat, longitude: pickupLocation.lng },
-        { latitude: destinationLocation.lat, longitude: destinationLocation.lng }
+        { latitude: pickupLocation.latitude, longitude: pickupLocation.longitude },
+        { latitude: destinationLocation.latitude, longitude: destinationLocation.longitude }
     );
 
     // Convert distance from meters to kilometers
