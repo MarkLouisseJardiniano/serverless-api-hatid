@@ -7,6 +7,7 @@ const User = require("../schema/auth");
 const JWT_SECRET = "IWEFHsdfIHCW362weg47HGV3GB4678{]JKAsadFIH";
 const authenticateUser = require("../middleware/verify");
 const fareCalculate = require("../utils/fareCalculate")
+const calculateDistance = require('../utils/calculateDistance');
 
 // Get all bookings
 router.get("/booking", async (req, res) => {
@@ -52,7 +53,11 @@ router.post("/create", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-const fare =  fareCalculate(vehicleType, distanceInKm);
+    // Calculate the distance between the pickup and destination locations
+    const distanceInKm = calculateDistance(pickupLocation, destinationLocation);
+
+    // Calculate the fare
+    const fare = fareCalculate(vehicleType, distanceInKm);
 
     const newBooking = new Booking({
       name: user.name,
@@ -60,7 +65,7 @@ const fare =  fareCalculate(vehicleType, distanceInKm);
       pickupLocation,
       destinationLocation,
       vehicleType,
-      fare,
+      fare, // Add fare to the booking
       status: "pending",
     });
 
