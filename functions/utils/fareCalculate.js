@@ -15,7 +15,7 @@ function fareCalculate(vehicleType, distanceInKm) {
     };
 
     // Retrieve the specific fares for the vehicle type
-    const baseFare = baseFares[vehicleType] || 0;
+    const baseFare = [vehicleType] || 0;
     const distanceFare = distanceFares[vehicleType] || 0;
     const bookingFee = bookingFees[vehicleType] || 0;
 

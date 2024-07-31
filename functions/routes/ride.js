@@ -5,7 +5,6 @@ const Driver = require("../schema/drivers");
 const User = require("../schema/auth");
 const JWT_SECRET = "IWEFHsdfIHCW362weg47HGV3GB4678{]JKAsadFIH";
 const authenticateUser = require("../middleware/verify");
-const fareCalculate = require("../utils/fareCalculate")
 
 // Get all bookings
 router.get("/booking", async (req, res) => {
@@ -51,15 +50,12 @@ router.post("/create", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-const fare =  fareCalculate(vehicleType, distanceInKm);
-
     const newBooking = new Booking({
       name: user.name,
       user: userId,
       pickupLocation,
       destinationLocation,
       vehicleType,
-      fare,
       status: "pending",
     });
 
@@ -91,7 +87,7 @@ router.post("/accept", async (req, res) => {
     await booking.save();
 
     // Populate the driver information
-    const updatedBooking = await Booking.findById(bookingId).populate("driver");
+    const updatedBooking = await Booking.findById(bookingId).populate('driver');
 
     res.status(200).json({ status: "ok", data: updatedBooking });
   } catch (error) {
@@ -122,18 +118,4 @@ router.post("/complete", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-// Get booking by ID and populate driver information
-router.get("/booking/:id", async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id).populate("driver");
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-    res.json(booking);
-  } catch (err) {
-    console.error("Error fetching booking:", err);
-    res.status(500).json({ message: "Server Error" });
-  }
-});
-
 module.exports = router;
