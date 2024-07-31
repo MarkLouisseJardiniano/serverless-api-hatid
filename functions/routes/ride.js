@@ -55,9 +55,11 @@ router.post("/create", async (req, res) => {
 
     // Calculate the distance between the pickup and destination locations
     const distanceInKm = calculateDistance(pickupLocation, destinationLocation);
+    console.log(`Distance in KM: ${distanceInKm}`);
 
     // Calculate the fare
     const fare = fareCalculate(vehicleType, distanceInKm);
+    console.log(`Calculated Fare: ${fare}`);
 
     const newBooking = new Booking({
       name: user.name,
@@ -65,7 +67,7 @@ router.post("/create", async (req, res) => {
       pickupLocation,
       destinationLocation,
       vehicleType,
-      fare, // Add fare to the booking
+      fare,
       status: "pending",
     });
 
@@ -76,6 +78,7 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
+
 // Accept a booking
 router.post("/accept", async (req, res) => {
   try {
