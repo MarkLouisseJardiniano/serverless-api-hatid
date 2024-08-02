@@ -4,6 +4,7 @@ const serverless = require("serverless-http");
 const router = require("./routes/auth");
 const driverRouter = require("./routes/drivers")
 const rideRouter = require("./routes/ride")
+const fareRouter = require("./routes/fare")
 const mongoose = require("mongoose");
 const cors = require("cors");
 
@@ -24,4 +25,5 @@ mongoose
 app.use("/.netlify/functions/api", router);
 app.use("/.netlify/functions/api/driver", driverRouter);
 app.use("/.netlify/functions/api/ride", rideRouter);
+app.use("/.netlify/functions/api/admin-fare", fareRouter);
 module.exports.handler = serverless(app);

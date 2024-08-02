@@ -65,7 +65,7 @@ router.post("/create", async (req, res) => {
     console.log(`Distance in KM: ${distance}`);
 
     // Calculate the fare
-    const fare = fareDetails.baseFare + (fareDetails.farePerKm * distance);
+    const fare = fareDetails.baseFare + (fareDetails.farePerKm * distance) + fareDetails.bookingFee;
     console.log(`Calculated Fare: ${fare}`);
 
     const newBooking = new Booking({
