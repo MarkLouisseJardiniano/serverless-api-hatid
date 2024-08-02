@@ -1,26 +1,22 @@
-function fareCalculate(vehicleType, distanceInKm) {
-    const baseFares = {
-        Tricycle: 15,
-        Jeep: 20,
-    };
-
-    const distanceFares = {
-        Tricycle: 12, // cost per kilometer
-        Jeep: 15, // cost per kilometer
-    };
-
-    const bookingFees = {
-        Tricycle: 15,
-        Jeep: 20,
+function fareCalculate(vehicleType, distance) {
+    const fares = {
+        Tricycle: {
+            baseFare: 15,
+            distanceFare: 12,
+            bookingFee: 20
+        },
+        Jeep: {
+            baseFare: 15,
+            distanceFare: 12,
+            bookingFee: 20
+        }
     };
 
     // Retrieve the specific fares for the vehicle type
-    const baseFare = baseFares[vehicleType] || 0;
-    const distanceFare = distanceFares[vehicleType] || 0;
-    const bookingFee = bookingFees[vehicleType] || 0;
+    const { baseFare, distanceFare, bookingFee } = fares[vehicleType] || { baseFare: 0, distanceFare: 0, bookingFee: 0 };
 
     // Calculate total fare
-    const fare = baseFare + (distanceFare * distanceInKm) + bookingFee;
+    const fare = baseFare + (distanceFare * distance) + bookingFee;
 
     return fare;
 }

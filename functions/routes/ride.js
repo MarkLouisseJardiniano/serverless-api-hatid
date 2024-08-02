@@ -4,6 +4,7 @@ const router = express.Router();
 const Booking = require("../schema/ride");
 const Driver = require("../schema/drivers");
 const User = require("../schema/auth");
+const Fare = require("../schema/fare")
 const JWT_SECRET = "IWEFHsdfIHCW362weg47HGV3GB4678{]JKAsadFIH";
 const authenticateUser = require("../middleware/verify");
 const fareCalculate = require("../utils/fareCalculate")
@@ -53,12 +54,18 @@ router.post("/create", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // Fetch fare details based on vehicleType
+    const fareDetails = await Fare.findOne({ vehicleType });
+    if (!fareDetails) {
+      return res.status(404).json({ error: "Fare details not found for vehicle type" });
+    }
+
     // Calculate the distance between the pickup and destination locations
-    const distanceInKm = calculateDistance(pickupLocation, destinationLocation);
-    console.log(`Distance in KM: ${distanceInKm}`);
+    const distance = calculateDistance(pickupLocation, destinationLocation);
+    console.log(`Distance in KM: ${distance}`);
 
     // Calculate the fare
-    const fare = fareCalculate(vehicleType, distanceInKm);
+    const fare = fareDetails.baseFare + (fareDetails.farePerKm * distance);
     console.log(`Calculated Fare: ${fare}`);
 
     const newBooking = new Booking({
