@@ -1,9 +1,14 @@
+
 const express = require("express");
 const router = express.Router();
 const Booking = require("../schema/ride");
 const Driver = require("../schema/drivers");
 const User = require("../schema/auth");
-const Fare = require("../schema/fare");
+const Fare = require("../schema/fare")
+const JWT_SECRET = "IWEFHsdfIHCW362weg47HGV3GB4678{]JKAsadFIH";
+const authenticateUser = require("../middleware/verify");
+const fareCalculate = require("../utils/fareCalculate")
+const calculateDistance = require('../utils/calculateDistance');
 
 // Get all bookings
 router.get("/booking", async (req, res) => {
@@ -15,7 +20,6 @@ router.get("/booking", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 // Get available bookings for drivers
 router.get("/available", async (req, res) => {
   try {
@@ -26,7 +30,6 @@ router.get("/available", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 router.get("/accepted", async (req, res) => {
   try {
     const acceptedBooking = await Booking.find({ status: "accepted" });
@@ -36,20 +39,30 @@ router.get("/accepted", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 // Create a new booking
 router.post("/create", async (req, res) => {
-  const { userId, pickupLocation, destinationLocation, vehicleType, distance, fare } = req.body;
+  const { userId, pickupLocation, destinationLocation, vehicleType } = req.body;
 
-  if (!userId || !pickupLocation || !destinationLocation || !vehicleType || !distance || !fare) {
+  if (!userId || !pickupLocation || !destinationLocation || !vehicleType) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
+    // Fetch the user's details based on userId
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    // Fetch fare details based on vehicleType
+    const fareDetails = await Fare.findOne({ vehicleType });
+    if (!fareDetails) {
+      return res.status(404).json({ error: "Fare details not found for vehicle type" });
+    }
+
+    // Calculate the fare
+    const fare = fareDetails.baseFare + (fareDetails.farePerKm * distance) + fareDetails.bookingFee;
+    console.log(`Calculated Fare: ${fare}`);
 
     const newBooking = new Booking({
       name: user.name,
@@ -75,7 +88,9 @@ router.post("/accept", async (req, res) => {
     const { bookingId, driverId } = req.body;
 
     if (!bookingId || !driverId) {
-      return res.status(400).json({ message: "Booking ID and Driver ID are required" });
+      return res
+        .status(400)
+        .json({ message: "Booking ID and Driver ID are required" });
     }
 
     const booking = await Booking.findById(bookingId);
@@ -87,6 +102,7 @@ router.post("/accept", async (req, res) => {
     booking.driver = driverId;
     await booking.save();
 
+    // Populate the driver information
     const updatedBooking = await Booking.findById(bookingId).populate("driver");
 
     res.status(200).json({ status: "ok", data: updatedBooking });
@@ -101,7 +117,7 @@ router.post("/complete", async (req, res) => {
     const { bookingId } = req.body;
 
     if (!bookingId) {
-      return res.status(400).json({ message: "Booking ID is required" });
+      return res.status(400).json({ message: "Booking ID are required" });
     }
 
     const booking = await Booking.findById(bookingId);
@@ -118,7 +134,6 @@ router.post("/complete", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 // Get booking by ID and populate driver information
 router.get("/booking/:id", async (req, res) => {
   try {
