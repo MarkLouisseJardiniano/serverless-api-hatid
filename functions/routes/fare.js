@@ -3,7 +3,6 @@ const router = express.Router();
 const Fare = require("../schema/fare");
 
 
-
 router.get('/fares', async (req, res) => {
     try {
       const fares = await Fare.find();
