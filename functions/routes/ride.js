@@ -7,8 +7,6 @@ const User = require("../schema/auth");
 const Fare = require("../schema/fare")
 const JWT_SECRET = "IWEFHsdfIHCW362weg47HGV3GB4678{]JKAsadFIH";
 const authenticateUser = require("../middleware/verify");
-const fareCalculate = require("../utils/fareCalculate")
-const calculateDistance = require('../utils/calculateDistance');
 
 // Get all bookings
 router.get("/booking", async (req, res) => {
@@ -41,9 +39,9 @@ router.get("/accepted", async (req, res) => {
 });
 // Create a new booking
 router.post("/create", async (req, res) => {
-  const { userId, pickupLocation, destinationLocation, vehicleType } = req.body;
+  const { userId, pickupLocation, destinationLocation, vehicleType, fare } = req.body;
 
-  if (!userId || !pickupLocation || !destinationLocation || !vehicleType) {
+  if (!userId || !pickupLocation || !destinationLocation || !vehicleType || fare == null) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
@@ -53,16 +51,6 @@ router.post("/create", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
-    // Fetch fare details based on vehicleType
-    const fareDetails = await Fare.findOne({ vehicleType });
-    if (!fareDetails) {
-      return res.status(404).json({ error: "Fare details not found for vehicle type" });
-    }
-
-    // Calculate the fare
-    const fare = fareDetails.baseFare + (fareDetails.farePerKm * distance) + fareDetails.bookingFee;
-    console.log(`Calculated Fare: ${fare}`);
 
     const newBooking = new Booking({
       name: user.name,
@@ -81,7 +69,6 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
-
 // Accept a booking
 router.post("/accept", async (req, res) => {
   try {
