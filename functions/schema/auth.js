@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
     max: 15
   },
   birthday: {
-    type: Date,
+    type: String,
     required: true
   },
   address: {
