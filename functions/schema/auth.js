@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   number: {
-    type: Number,
+    type: String,
     required: true,
     match: [/^\d{7,15}$/, 'Phone number must be between 7 and 15 digits'],
   },
