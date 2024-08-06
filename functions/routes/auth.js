@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
 });
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { firstName, lastName, email, password, number, birthday, address } = req.body;
 
     let user = await User.findOne({ email });
     if (user) {
@@ -59,9 +59,13 @@ router.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     user = new User({
-      name,
+      firstName,
+      lastName,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      number,
+      birthday,
+      address,
     });
 
     await user.save();
