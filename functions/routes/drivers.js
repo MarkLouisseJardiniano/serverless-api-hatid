@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
 router.post('/driver-signup', async (req, res) => {
   try {
     const { name, email, password, number, birthday, address } = req.body;
-    
+
     let driver = await Driver.findOne({ email });
     if (driver) {
       return res.status(400).json({ message: 'Driver already exists' });
@@ -46,7 +46,6 @@ router.post('/driver-signup', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
-
 
 // Login route
 router.post('/driver-login', async (req, res) => {
