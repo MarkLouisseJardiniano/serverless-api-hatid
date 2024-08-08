@@ -41,6 +41,7 @@ router.post('/driver-signup', async (req, res) => {
       number,
       birthday,
       address,
+      accountType
     });
 
     await driver.save();
