@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 // Signup route
 router.post('/driver-signup', async (req, res) => {
   try {
-    const { name, email, password, number, birthday, address, accountType } = req.body;
+    const { name, email, password, number, birthday, address } = req.body;
 
     if (accountType !== 'Driver') {
       return res.status(400).json({ message: 'Invalid account type for this route' });
@@ -41,7 +41,6 @@ router.post('/driver-signup', async (req, res) => {
       number,
       birthday,
       address,
-      accountType
     });
 
     await driver.save();

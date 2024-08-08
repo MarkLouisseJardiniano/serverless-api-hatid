@@ -27,10 +27,6 @@ const driverSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  accountType: {
-    type: String, 
-    required: true
-  }
 });
 
 const Driver = mongoose.model("Driver", driverSchema);
