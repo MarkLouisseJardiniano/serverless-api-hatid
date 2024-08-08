@@ -13,7 +13,20 @@ const driverSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
-  }
+  },
+  number: {
+    type: String,
+    required: true,
+    match: [/^\d{7,15}$/, 'Phone number must be between 7 and 15 digits'],
+  },
+  birthday: {
+    type: String,
+    required: true
+  },
+  address: {
+    type: String,
+    required: true
+  },
 });
 
 const Driver = mongoose.model('Driver', driverSchema);

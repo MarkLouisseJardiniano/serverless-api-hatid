@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 // Signup route
 router.post('/driver-signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, number, birthday, address } = req.body;
 
     let driver = await Driver.findOne({ email });
     if (driver) {
@@ -33,7 +33,10 @@ router.post('/driver-signup', async (req, res) => {
     driver = new Driver({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      number,
+      birthday,
+      address,
     });
 
     await driver.save();
