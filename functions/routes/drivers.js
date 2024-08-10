@@ -32,7 +32,7 @@ router.post('/driver-signup', async (req, res) => {
 
     driver = new Driver({
       name,
-      email,
+      email,  
       password: hashedPassword,
       number,
       birthday,
