@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
 // Signup route
 router.post('/driver-signup', async (req, res) => {
   try {
-    const { name, email, password, number, birthday, address } = req.body;
+    const { name, email, password, number, birthday, address, license, vehicleInfo1, vehicleInfo2 } = req.body;
 
     let driver = await Driver.findOne({ email });
     if (driver) {
@@ -37,6 +37,9 @@ router.post('/driver-signup', async (req, res) => {
       number,
       birthday,
       address,
+      license,
+      vehicleInfo1,
+      vehicleInfo2
     });
 
     await driver.save();
