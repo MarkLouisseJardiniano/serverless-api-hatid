@@ -6,33 +6,42 @@ const vehicleInfo2Schema = require("./vehicleInfo2");
 const driverSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: [true, 'Name is required']
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'Email is required'],
     unique: true
   },
   password: {
     type: String,
-    required: true
+    required: [true, 'Password is required']
   },
   number: {
     type: String,
-    required: true,
+    required: [true, 'Phone number is required'],
     match: [/^\d{7,15}$/, "Phone number must be between 7 and 15 digits"]
   },
   birthday: {
     type: Date,
-    required: true
+    required: [true, 'Birthday is required']
   },
   address: {
     type: String,
-    required: true
+    required: [true, 'Address is required']
   },
-  license: licenseSchema,
-  vehicleInfo1: vehicleInfo1Schema,
-  vehicleInfo2: vehicleInfo2Schema
+  license: {
+    type: licenseSchema,
+    required: [true, 'License information is required']
+  },
+  vehicleInfo1: {
+    type: vehicleInfo1Schema,
+    required: [true, 'Vehicle info 1 is required']
+  },
+  vehicleInfo2: {
+    type: vehicleInfo2Schema,
+    required: [true, 'Vehicle info 2 is required']
+  }
 });
 
 const Driver = mongoose.model("Driver", driverSchema);
