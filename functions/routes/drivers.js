@@ -17,29 +17,29 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Signup route
 router.post('/driver-signup', async (req, res) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      number,
-      birthday,
-      address,
-      license,
-      vehicleInfo1,
-      vehicleData, // Assuming this holds vehicleInfo2
-    } = req.body;
+    // Log the incoming request body to see what data is being received
+    console.log('Request Body:', req.body);
 
+    const { name, email, password, number, birthday, address, license, vehicleInfo1, vehicleInfo2 } = req.body;
+
+    // Validate that all required fields are provided
+    if (!name || !email || !password || !number || !birthday || !address || !license || !vehicleInfo1 || !vehicleInfo2) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Check if a driver with the same email already exists
     let driver = await Driver.findOne({ email });
     if (driver) {
       return res.status(400).json({ message: 'Driver already exists' });
     }
 
+    // Hash the password before saving it to the database
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Create a new driver instance with the received data
     driver = new Driver({
       name,
       email,
@@ -49,14 +49,20 @@ router.post('/driver-signup', async (req, res) => {
       address,
       license,
       vehicleInfo1,
-      vehicleInfo2: vehicleData, // Access vehicleData from request body
+      vehicleInfo2
     });
 
+    // Save the new driver to the database
     await driver.save();
+    
+    // Respond with success if the driver is created successfully
     res.status(201).json({ message: 'Driver created successfully', name: driver.name });
   } catch (error) {
+    // Log the error details for debugging
     console.error('Error during signup:', error);
-    res.status(500).json({ message: 'Server Error' });
+    
+    // Send a more detailed error response if available, or a generic server error
+    res.status(500).json({ message: error.message || 'Server Error' });
   }
 });
 
