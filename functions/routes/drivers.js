@@ -20,7 +20,17 @@ router.get('/', async (req, res) => {
 // Signup route
 router.post('/driver-signup', async (req, res) => {
   try {
-    const { name, email, password, number, birthday, address, license, vehicleInfo1, vehicleInfo2 } = req.body;
+    const {
+      name,
+      email,
+      password,
+      number,
+      birthday,
+      address,
+      license,
+      vehicleInfo1,
+      vehicleData, // Assuming this holds vehicleInfo2
+    } = req.body;
 
     let driver = await Driver.findOne({ email });
     if (driver) {
@@ -32,14 +42,14 @@ router.post('/driver-signup', async (req, res) => {
 
     driver = new Driver({
       name,
-      email,  
+      email,
       password: hashedPassword,
       number,
       birthday,
       address,
       license,
       vehicleInfo1,
-      vehicleInfo2
+      vehicleInfo2: vehicleData, // Access vehicleData from request body
     });
 
     await driver.save();
@@ -49,6 +59,7 @@ router.post('/driver-signup', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
 
 // Login route
 router.post('/driver-login', async (req, res) => {
