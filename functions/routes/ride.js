@@ -136,11 +136,11 @@ router.get("/booking/:id", async (req, res) => {
   }
 });
 
-router.get("/commuter-bookings/:id", async (req, res) => {
+router.get("/activity/:id", async (req, res) => {
   try {
-    const commuterId = req.params.id;
+    const id = req.params.id;
     
-    const bookings = await Booking.find({ commuter: commuterId });
+    const bookings = await Booking.find({ commuter: id });
     
     if (bookings.length === 0) {
       return res.status(404).json({ message: 'No bookings found for this commuter' });
