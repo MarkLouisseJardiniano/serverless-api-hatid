@@ -136,23 +136,26 @@ router.get("/booking/:id", async (req, res) => {
   }
 });
 
-router.get("/activity/:userId", async (req, res) => {
+router.get("/activity/:id", async (req, res) => {
   try {
-    const userId = req.params.userId;
-    
-    // Find all bookings where the user field matches the provided user ID
-    const bookings = await Booking.find({ user: userId });
-    
-    if (bookings.length === 0) {
-      return res.status(404).json({ message: 'No bookings found for this user' });
+    const userId = req.params.id;
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
     }
-    
-    res.status(200).json({ status: 'ok', data: bookings });
+
+    const activity = await Booking.findOne({ user: userId });
+    if (!activity) {
+      return res.status(404).json({ message: 'Activity not found' });
+    }
+
+    res.status(200).json({ status: 'ok', data: activity });
   } catch (error) {
-    console.error('Error getting user bookings:', error);
+    console.error('Error getting activity data:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
 
 
 
