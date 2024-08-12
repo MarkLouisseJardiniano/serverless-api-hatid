@@ -136,22 +136,24 @@ router.get("/booking/:id", async (req, res) => {
   }
 });
 
-router.get("/activity/:id", async (req, res) => {
+router.get("/activity/:userId", async (req, res) => {
   try {
-    const id = req.params.id;
+    const userId = req.params.userId;
     
-    const bookings = await Booking.find({ commuter: id });
+    // Find all bookings where the user field matches the provided user ID
+    const bookings = await Booking.find({ user: userId });
     
     if (bookings.length === 0) {
-      return res.status(404).json({ message: 'No bookings found for this commuter' });
+      return res.status(404).json({ message: 'No bookings found for this user' });
     }
     
     res.status(200).json({ status: 'ok', data: bookings });
   } catch (error) {
-    console.error('Error getting commuter bookings:', error);
+    console.error('Error getting user bookings:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
 
 
 module.exports = router;
