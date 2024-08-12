@@ -18,6 +18,7 @@ router.get("/booking", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 // Get available bookings for drivers
 router.get("/available", async (req, res) => {
   try {
@@ -134,5 +135,20 @@ router.get("/booking/:id", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+router.get("/activity", async (req,res) => {
+  try {
+   const userId = req.params.id;
+   
+   const activity = await Booking.findById(userId);
+   if (!activity) {
+    return res.status(404).json({message: 'User not found'})
+   }
+   res.status(200).json({status: 'ok', data: activity});
+  } catch (error) {
+    console.error('Error getting activity data:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+})
 
 module.exports = router;
