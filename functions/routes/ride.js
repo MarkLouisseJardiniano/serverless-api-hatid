@@ -136,7 +136,7 @@ router.get("/booking/:id", async (req, res) => {
   }
 });
 
-router.get("/activity", async (req,res) => {
+router.get("/activity/:id", async (req,res) => {
   try {
    const userId = req.params.id;
    
