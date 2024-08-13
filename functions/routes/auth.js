@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
 });
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password, number, birthday, address } = req.body;
+    const { profilePic, name, email, password, number, birthday, address } = req.body;
 
     let user = await User.findOne({ email });
     if (user) {
@@ -59,6 +59,7 @@ router.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     user = new User({
+      profilePic: profilePic || '/images/default-profile.png',
       name,
       email,
       password: hashedPassword,
