@@ -5,6 +5,7 @@ const router = require("./routes/auth");
 const driverRouter = require("./routes/drivers")
 const rideRouter = require("./routes/ride")
 const fareRouter = require("./routes/fare")
+const messageRouter = require("./routes/message")
 const mongoose = require("mongoose");
 const cors = require("cors");
 const socketIo = require("socket.io");
@@ -29,6 +30,7 @@ app.use("/.netlify/functions/api", router);
 app.use("/.netlify/functions/api/driver", driverRouter);
 app.use("/.netlify/functions/api/ride", rideRouter);
 app.use("/.netlify/functions/api/admin-fare", fareRouter);
+app.use("/.netlify/functions/api/message", messageRouter);
 
 
 io.on("connection", (socket) => {
