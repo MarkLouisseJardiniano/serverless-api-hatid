@@ -4,35 +4,41 @@ const Message = require('../schema/message'); // Adjust the path to your model
 
 // Create a new message
 router.post('/', async (req, res) => {
-  const { text, sender, driver } = req.body;
-  try {
-    // Check if sender and recipient or driver are provided
-    if (!sender || !driver) {
-      return res.status(400).json({ message: "Sender and recipient or driver required" });
+    const { text, sender, receiver, senderModel, receiverModel } = req.body;
+    try {
+      // Check if sender and receiver are provided along with their models
+      if (!sender || !receiver || !senderModel || !receiverModel) {
+        return res.status(400).json({ message: "Sender, receiver, and their models are required" });
+      }
+  
+      const message = new Message({ text, sender, receiver, senderModel, receiverModel });
+      await message.save();
+      res.status(201).json(message);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
+  });
+  
 
-    const message = new Message({ text, sender, driver });
-    await message.save();
-    res.status(201).json(message);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Fetch messages based on filters
-router.get('/', async (req, res) => {
-  const { sender, driver } = req.query;
-  const filter = {};
-
-  if (sender) filter.sender = sender;
-  if (driver) filter.driver = driver;
-
-  try {
-    const messages = await Message.find(filter).sort({ timestamp: 1 }).populate('sender recipient driver');
-    res.json(messages);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
+  router.get('/', async (req, res) => {
+    const { userId, driverId } = req.query;
+    const filter = {};
+  
+    if (userId && driverId) {
+      filter.$or = [
+        { sender: userId, receiver: driverId, senderModel: 'User', receiverModel: 'Driver' },
+        { sender: driverId, receiver: userId, senderModel: 'Driver', receiverModel: 'User' }
+      ];
+    }
+  
+    try {
+      const messages = await Message.find(filter)
+        .sort({ timestamp: 1 })
+        .populate('sender receiver');
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
 module.exports = router;
