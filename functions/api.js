@@ -34,8 +34,14 @@ app.use("/.netlify/functions/api/message", messageRouter);
 io.on("connection", (socket) => {
   console.log("New client connected");
 
-  // Send previous messages
-  Message.find().then((messages) => {
+  // Fetch previous messages
+  socket.on("fetchMessages", async ({ userId, recipientId }) => {
+    const messages = await Message.find({
+      $or: [
+        { sender: userId, recipient: recipientId },
+        { sender: recipientId, recipient: userId }
+      ]
+    }).sort({ timestamp: 1 });
     socket.emit("previousMessages", messages);
   });
 
@@ -50,5 +56,6 @@ io.on("connection", (socket) => {
     console.log("Client disconnected");
   });
 });
+
 
 module.exports.handler = serverless(app);
