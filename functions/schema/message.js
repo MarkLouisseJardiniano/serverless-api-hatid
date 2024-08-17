@@ -4,12 +4,12 @@ const Schema = mongoose.Schema;
 // Define the Message schema
 const messageSchema = new Schema({
   sender: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User', // Reference to the User model (includes both users and drivers)
     required: true
   },
   receiver: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User', // Reference to the User model (includes both users and drivers)
     required: true
   },
