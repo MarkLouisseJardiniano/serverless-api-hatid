@@ -4,13 +4,21 @@ const Schema = mongoose.Schema;
 // Define the Message schema
 const messageSchema = new Schema({
   sender: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to the User model (includes both users and drivers)
+    type: Schema.Types.ObjectId,
+    required: true
+  },
+  senderType: {
+    type: String,
+    enum: ['User', 'Driver'],
     required: true
   },
   receiver: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Reference to the User model (includes both users and drivers)
+    type: Schema.Types.ObjectId,
+    required: true
+  },
+  receiverType: {
+    type: String,
+    enum: ['User', 'Driver'],
     required: true
   },
   content: {
