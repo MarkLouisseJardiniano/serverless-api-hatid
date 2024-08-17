@@ -1,16 +1,27 @@
-const User = require('./models/User');
-const Message = require('../schema/message');
+const express = require('express');
+const router = express.Router();
+const Message = require('../schema/message'); // Adjust the path to your model
 
-
-app.post('/api/messages', async (req, res) => {
+// Create a new message
+router.post('/send', async (req, res) => {
   const { text, sender } = req.body;
-  const message = new Message({ text, sender });
-  await message.save();
-  res.status(201).json(message);
+  try {
+    const message = new Message({ text, sender });
+    await message.save();
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
-// Example route to fetch all messages
-app.get('/api/messages', async (req, res) => {
-  const messages = await Message.find().sort({ timestamp: 1 });
-  res.json(messages);
+// Fetch all messages
+router.get('/', async (req, res) => {
+  try {
+    const messages = await Message.find().sort({ timestamp: 1 });
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
+
+module.exports = router;
