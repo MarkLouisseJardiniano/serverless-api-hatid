@@ -3,6 +3,7 @@ const serverless = require("serverless-http");
 const http = require("http");
 const cors = require("cors");
 const mongoose = require("mongoose");
+
 const router = require("./routes/auth");
 const driverRouter = require("./routes/drivers");
 const rideRouter = require("./routes/ride");
@@ -28,31 +29,5 @@ app.use("/.netlify/functions/api/driver", driverRouter);
 app.use("/.netlify/functions/api/ride", rideRouter);
 app.use("/.netlify/functions/api/admin-fare", fareRouter);
 app.use("/.netlify/functions/api/message", messageRouter);
-app.use(express.static(path.join(__dirname, 'public')))
-
-let socketsConected = new Set()
-
-io.on('connection', onConnected)
-
-function onConnected(socket) {
-  console.log('Socket connected', socket.id)
-  socketsConected.add(socket.id)
-  io.emit('clients-total', socketsConected.size)
-
-  socket.on('disconnect', () => {
-    console.log('Socket disconnected', socket.id)
-    socketsConected.delete(socket.id)
-    io.emit('clients-total', socketsConected.size)
-  })
-
-  socket.on('message', (data) => {
-    // console.log(data)
-    socket.broadcast.emit('chat-message', data)
-  })
-
-  socket.on('feedback', (data) => {
-    socket.broadcast.emit('feedback', data)
-  })
-}
 
 module.exports.handler = serverless(app);

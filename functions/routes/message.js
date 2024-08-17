@@ -1,26 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const Message = require('../schema/message'); // Adjust the path to your model
-
-// Create a new message
-// Get all messages
-app.get('/messages', async (req, res) => {
+router.get('/chat', async (req, res) => {
+    const { userId, driverId } = req.query;
     try {
-      const messages = await Message.find();
+      const messages = await Message.find({
+        $or: [
+          { sender: userId, receiver: driverId, senderType: 'User', receiverType: 'Driver' },
+          { sender: driverId, receiver: userId, senderType: 'Driver', receiverType: 'User' }
+        ]
+      }).sort({ timestamp: 1 });
       res.json(messages);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to fetch messages' });
+      res.status(500).json({ message: error.message });
     }
   });
-  
-  // Post a new message (optional if you use socket.io for real-time messaging)
-  app.post('/messages', async (req, res) => {
+  router.post('/', async (req, res) => {
+    const { content, sender, senderType, receiver, receiverType } = req.body;
     try {
-      const message = new Message(req.body);
+      if (!content || !sender || !receiver || !senderType || !receiverType) {
+        return res.status(400).json({ message: "Content, sender, receiver, senderType, and receiverType are required" });
+      }
+      const message = new Message({ content, sender, senderType, receiver, receiverType });
       await message.save();
       res.status(201).json(message);
     } catch (error) {
-      res.status(500).json({ error: 'Failed to save message' });
+      res.status(500).json({ message: error.message });
     }
   });
   
