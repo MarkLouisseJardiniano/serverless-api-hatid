@@ -1,3 +1,8 @@
+const express = require('express');
+const router = express.Router();
+const Message = require('../schema/message'); // Adjust the path to your model
+
+// Create a new message
 // Get all messages
 app.get('/messages', async (req, res) => {
     try {
@@ -19,3 +24,5 @@ app.get('/messages', async (req, res) => {
     }
   });
   
+
+module.exports = router;
