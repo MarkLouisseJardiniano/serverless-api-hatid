@@ -1,13 +1,33 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const messageSchema = new mongoose.Schema({
-  text: { type: String, required: true },
-  sender: { type: mongoose.Schema.Types.ObjectId, refPath: 'senderModel', required: true }, // Sender can be a user or driver
-  receiver: { type: mongoose.Schema.Types.ObjectId, refPath: 'receiverModel', required: true }, // Receiver can be a user or driver
-  timestamp: { type: Date, default: Date.now },
-  senderModel: { type: String, required: true, enum: ['User', 'Driver'] }, // Model type for sender
-  receiverModel: { type: String, required: true, enum: ['User', 'Driver'] } // Model type for receiver
+// Define the Message schema
+const messageSchema = new Schema({
+  sender: {
+    type: Schema.Types.ObjectId,
+    ref: 'User', // Reference to the User model (includes both users and drivers)
+    required: true
+  },
+  receiver: {
+    type: Schema.Types.ObjectId,
+    ref: 'User', // Reference to the User model (includes both users and drivers)
+    required: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now
+  },
+  read: {
+    type: Boolean,
+    default: false
+  }
 });
 
+// Create a model from the schema
 const Message = mongoose.model('Message', messageSchema);
+
 module.exports = Message;
