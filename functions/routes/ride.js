@@ -100,6 +100,30 @@ router.post("/accept", async (req, res) => {
   }
 });
 
+// Cancel a booking
+router.post("/cancel", async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+
+    if (!bookingId) {
+      return res.status(400).json({ message: "Booking ID is required" });
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking || booking.status === "completed" || booking.status === "canceled") {
+      return res.status(400).json({ message: "Booking cannot be canceled" });
+    }
+
+    booking.status = "canceled";
+    const updatedBooking = await booking.save();
+
+    res.status(200).json({ status: "ok", data: updatedBooking });
+  } catch (error) {
+    console.error("Error canceling booking:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 router.post("/complete", async (req, res) => {
   try {
     const { bookingId } = req.body;
