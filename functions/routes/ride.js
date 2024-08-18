@@ -104,7 +104,6 @@ router.post("/accept", async (req, res) => {
 router.post("/cancel", async (req, res) => {
   try {
     const { bookingId } = req.body;
-
     if (!bookingId) {
       return res.status(400).json({ message: "Booking ID is required" });
     }
