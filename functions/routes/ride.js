@@ -47,7 +47,7 @@ router.post("/create", async (req, res) => {
   }
 
   try {
-    // Fetch the user's details based on userId
+    // Fetch the user's detail
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -70,6 +70,7 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
+
 // Accept a booking
 router.post("/accept", async (req, res) => {
   try {
