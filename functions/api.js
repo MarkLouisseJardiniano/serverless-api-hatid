@@ -3,7 +3,7 @@ const serverless = require("serverless-http");
 const http = require("http");
 const cors = require("cors");
 const mongoose = require("mongoose");
-
+const socketIo = require('socket.io');
 const router = require("./routes/auth");
 const driverRouter = require("./routes/drivers");
 const rideRouter = require("./routes/ride");
