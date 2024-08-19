@@ -10,6 +10,7 @@ const rideRouter = require("./routes/ride");
 const fareRouter = require("./routes/fare");
 const subsRouter = require("./routes/subscription");
 const ratingRouter = require("./routes/ratingsAndFeedback");
+const violateRouter = require("./routes/violation");
 
 const app = express();
 const server = http.createServer(app);
@@ -31,5 +32,7 @@ app.use("/.netlify/functions/api/ride", rideRouter);
 app.use("/.netlify/functions/api/admin-fare", fareRouter);
 app.use("/.netlify/functions/api/subs", subsRouter);
 app.use("/.netlify/functions/api/rate", ratingRouter);
+app.use("/.netlify/functions/api/violate", violateRouter);
+
 
 module.exports.handler = serverless(app);
