@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const Ratings= require("../schema/ratingsAndFeedbackSchema");
 const Driver = require("../schema/drivers");
-const User = require("../schema/auth")
+const User = require("../schema/auth");
+const Booking = require("../schema/ride");
 
 
 router.get("/ratings", async (req, res) => {
