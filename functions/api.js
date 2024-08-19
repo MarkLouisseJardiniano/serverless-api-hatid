@@ -28,6 +28,6 @@ app.use("/.netlify/functions/api", router);
 app.use("/.netlify/functions/api/driver", driverRouter);
 app.use("/.netlify/functions/api/ride", rideRouter);
 app.use("/.netlify/functions/api/admin-fare", fareRouter);
-app.use("/.netlify/functions/api/admin-fare", subsRouter);
+app.use("/.netlify/functions/api/subs", subsRouter);
 
 module.exports.handler = serverless(app);
