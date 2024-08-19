@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Subscription = require("../models/subscriptionSchema");
+const Subscription = require("../schema/subscriptionSchema");
 const Driver = require("../schema/drivers");
 
 
