@@ -19,7 +19,7 @@ router.get("/ratings", async (req, res) => {
 
 router.post("/ratings", async (req, res) => {
   try {
-    const { bookingId, driverId, userId, rating } = req.body;
+    const { bookingId, driverId, userId, rating, feedback } = req.body;
 
     if (!bookingId || !driverId || !userId) {
       return res.status(400).json({ message: "Ids not found" });
