@@ -1,8 +1,6 @@
-
 const express = require("express");
 const router = express.Router();
-const Driver = require("../schema/drivers");
-const Subs = require("../schema/subscriptionSchema");
+const Subscription = require("../schema/subscriptionSchema");
 
 router.get("/subscription", async (req, res) => {
     try {
@@ -16,18 +14,18 @@ router.get("/subscription", async (req, res) => {
 
 router.post("/subscription", async (req,res) => {
     try {
-        const driverId = req.body;
+        const {driverId, subscriptionType} = req.body;
 
         if(!driverId) {
             return res.status(200).json({message: "DriverId nt found"})
         }
 
-        const driver =  await Subs.findById(driverId);
+        const driver =  await Subscription.findById(driverId);
         if(!driver) {
             return res.status(400).json({message: "Driver not found haha"})
         }
 
-        const newSubscription = new Subs({
+        const newSubscription = new Subscription({
             driver: driverId,
             subscriptionType
         });
