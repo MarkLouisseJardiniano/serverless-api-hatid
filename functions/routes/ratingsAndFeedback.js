@@ -25,7 +25,7 @@ router.get("/ratings/:driverId", async (req, res) => {
     }
 
     // Query ratings based on driverId
-    const ratings = await Ratings.find({ driverId });
+    const ratings = await Ratings.find({ driver: driverId }); // Make sure `driver` matches the field in your schema
 
     if (ratings.length === 0) {
       return res.status(404).json({ message: "No ratings found for this driver." });
