@@ -16,6 +16,29 @@ router.get("/ratings", async (req, res) => {
   }
 });
 
+router.get("/ratings/:driverId", async (req, res) => {
+  try {
+    const { driverId } = req.params; // Get driverId from URL parameters
+
+    if (!driverId) {
+      return res.status(400).json({ message: "Driver ID is required." });
+    }
+
+    // Query ratings based on driverId
+    const ratings = await Ratings.find({ driverId });
+
+    if (ratings.length === 0) {
+      return res.status(404).json({ message: "No ratings found for this driver." });
+    }
+
+    res.json(ratings);
+  } catch (err) {
+    console.error("Error fetching ratings:", err);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+
 // Route to create a new rating
 router.post("/ratings/:driverId", async (req, res) => {
   try {
