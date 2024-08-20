@@ -83,7 +83,10 @@ router.post("/ratings/:driverId", async (req, res) => {
     });
 
     await newRatingsAndFeedback.save();
-    res.status(201).json(newRatingsAndFeedback);
+    res.status(201).json({
+      message: 'Rating Submitted Successfully',
+      data: newRatingsAndFeedback
+    });
   } catch (error) {
     console.error("Error creating rating:", error);
     res.status(500).json({ message: "Internal server error" });
