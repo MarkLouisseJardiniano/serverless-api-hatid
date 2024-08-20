@@ -3,28 +3,33 @@ const mongoose = require("mongoose");
 const ratingsAndFeedbacksSchema = new mongoose.Schema({
   booking: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Booking',
-    required: true
+    ref: "Booking",
+    required: true,
   },
   driver: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Driver',
-    required: true
+    ref: "Driver",
+    required: true,
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
   rating: {
     type: Number,
-    required: true
+    required: true,
+    min: 1,
+    max: 5
   },
   feedback: {
-    type: String
-  }
+    type: String,
+  },
 });
 
-const RatingsAndFeedbacks = mongoose.model("RatingsAndFeedbacks", ratingsAndFeedbacksSchema);
+const RatingsAndFeedbacks = mongoose.model(
+  "RatingsAndFeedbacks",
+  ratingsAndFeedbacksSchema
+);
 
 module.exports = RatingsAndFeedbacks;
