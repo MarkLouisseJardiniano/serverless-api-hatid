@@ -13,7 +13,7 @@ router.get('/fares', async (req, res) => {
     }
   });
   
-// Create or update fare for a vehicle type
+
 router.post("/set-fare", async (req, res) => {
   const { vehicleType, baseFare, farePerKm, bookingFee } = req.body;
 

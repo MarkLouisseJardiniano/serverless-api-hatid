@@ -168,7 +168,7 @@ router.get("/activities/:id", async (req, res) => {
       return res.status(400).json({ message: 'User ID is required' });
     }
 
-    const activities = await Booking.find({ user: userId }); // Find all bookings for the user
+    const activities = await Booking.find({ user: userId }); 
     if (activities.length === 0) {
       return res.status(404).json({ message: 'No activities found for this user' });
     }
