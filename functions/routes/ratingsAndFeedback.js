@@ -29,7 +29,7 @@ router.get("/ratings/:driverId", async (req, res) => {
       return res.status(404).json({ message: "No ratings found for this driver." });
     }
 
-    res.json( status: 'ok', data: ratings);
+    res.json({ status: 'ok', data: ratings });
   } catch (err) {
     console.error("Error fetching ratings:", err);
     res.status(500).json({ message: "Server Error" });
