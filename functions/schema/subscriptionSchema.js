@@ -22,8 +22,8 @@ const subscriptionSchema = new mongoose.Schema({
   vehicleType: {
     type: String,
     required: true,
-    enum: ["jeep", "tricycle"]
-  }
+    enum: ["jeep", "tricycle"],
+  },
 });
 
 const Subscription = mongoose.model("Subscription", subscriptionSchema);

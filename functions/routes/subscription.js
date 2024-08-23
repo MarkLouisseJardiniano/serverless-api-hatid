@@ -14,6 +14,22 @@ router.get("/subscription", async (req, res) => {
   }
 });
 
+// Route to check subscription status
+router.get("/subscription/status/:driverId", async (req, res) => {
+  try {
+    const driverId = req.params.driverId;
+    const subscription = await Subscription.findOne({ driver: driverId });
+    
+    if (!subscription || subscription.endDate < new Date()) {
+      return res.status(200).json({ subscribed: false });
+    }
+    
+    res.status(200).json({ subscribed: true });
+  } catch (error) {
+    console.error("Error checking subscription status:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 
 router.post("/subscription", async (req, res) => {
   try {
