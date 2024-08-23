@@ -3,13 +3,26 @@ const mongoose = require("mongoose");
 const subscriptionSchema = new mongoose.Schema({
   driver: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Driver',
-    required: true
+    ref: "Driver",
+    required: true,
   },
   subscriptionType: {
     type: String,
     required: true,
-    enum: ["Free", "Monthly", "Quarterly", "Annually"]
+    enum: ["None", "Free", "Monthly", "Quarterly", "Annually"],
+  },
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  endDate: {
+    type: Date,
+    required: true,
+  },
+  vehicleType: {
+    type: String,
+    required: true,
+    enum: ["jeep", "tricycle"]
   }
 });
 
