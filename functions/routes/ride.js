@@ -180,7 +180,7 @@ router.get("/activities/:id", async (req, res) => {
   }
 });
 
-router.get("/activities/:driverId", async (req, res) => {
+router.get("/activities/driver/:driverId", async (req, res) => {
   try {
     const driverId = req.params.driverId;
 
