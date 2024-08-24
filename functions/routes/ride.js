@@ -180,6 +180,25 @@ router.get("/activities/:id", async (req, res) => {
   }
 });
 
+router.get("/activities/:driverId", async (req, res) => {
+  try {
+    const driverId = req.params.driverId;
+
+    if (!driverId) {
+      return res.status(400).json({ message: 'Driver ID is required' });
+    }
+
+    const activities = await Booking.find({ user: driverId }); 
+    if (activities.length === 0) {
+      return res.status(404).json({ message: 'No activities found for this driver' });
+    }
+
+    res.status(200).json({ status: 'ok', data: activities });
+  } catch (error) {
+    console.error('Error getting activities data:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
 
 
 module.exports = router;
