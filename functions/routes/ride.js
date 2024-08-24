@@ -188,7 +188,10 @@ router.get("/activities/driver/:driverId", async (req, res) => {
       return res.status(400).json({ message: 'Driver ID is required' });
     }
 
-    const activities = await Booking.find({ user: driverId }); 
+    const activities = await Booking.find({ 
+      driver: driverId,
+      status: { $in: ['accepted', 'completed', 'cancelled'] }
+     }); 
     if (activities.length === 0) {
       return res.status(404).json({ message: 'No activities found for this driver' });
     }
