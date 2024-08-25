@@ -21,10 +21,10 @@ router.get("/violation/:driverId", async (req, res) => {
     const violations = await Violations.findOne({ driver: driverId });
     
     if (!violations) {
-      return res.status(200).json();
+      return res.status(404).json({ message: "No violations found for this driver." });
     }
     
-    res.status(200).json();
+    res.status(200).json(violations);
   } catch (error) {
     console.error("Error checking violation status:", error);
     res.status(500).json({ message: "Server Error" });
