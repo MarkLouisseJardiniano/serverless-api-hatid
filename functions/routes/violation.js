@@ -5,29 +5,29 @@ const Driver = require("../schema/drivers");
 const User = require("../schema/auth");
 const Booking = require("../schema/ride");
 
-
 router.get("/violation", async (req, res) => {
   try {
-    const violations = await Violations.find() .populate('user', 'name');
-    res.json(violations);
+    const violations = await Violations.find().populate('user', 'name');
+    res.status(200).json({ status: "ok", data: violations });
   } catch (err) {
-    console.error("Error fetching violation:", err);
-    res.status(500).json({ message: "Server Error" });
+    console.error("Error fetching violations:", err);
+    res.status(500).json({ status: "error", message: "Server Error" });
   }
 });
+
 router.get("/violation/:driverId", async (req, res) => {
   try {
     const driverId = req.params.driverId;
-    const violations = await Violations.findOne({ driver: driverId }) .populate('user', 'name');
+    const violations = await Violations.find({ driver: driverId }).populate('user', 'name');
     
-    if (!violations) {
-      return res.status(404).json({ message: "No violations found for this driver." });
+    if (!violations || violations.length === 0) {
+      return res.status(404).json({ status: "error", message: "No violations found for this driver." });
     }
     
-    res.status(200).json(violations);
+    res.status(200).json({ status: "ok", data: violations });
   } catch (error) {
     console.error("Error checking violation status:", error);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ status: "error", message: "Server Error" });
   }
 });
 
@@ -36,20 +36,20 @@ router.post("/violation", async (req, res) => {
     const { bookingId, driverId, userId, report } = req.body;
 
     if (!bookingId || !driverId || !userId) {
-      return res.status(400).json({ message: "Ids not found" });
+      return res.status(400).json({ status: "error", message: "Ids not found" });
     }
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
-      return res.status(400).json({ message: "Booking not found" });
+      return res.status(400).json({ status: "error", message: "Booking not found" });
     }
     const driver = await Driver.findById(driverId);
     if (!driver) {
-      return res.status(400).json({ message: "Driver not found" });
+      return res.status(400).json({ status: "error", message: "Driver not found" });
     }
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ status: "error", message: "User not found" });
     }
 
     const newViolation = new Violations({
@@ -60,10 +60,10 @@ router.post("/violation", async (req, res) => {
     });
 
     await newViolation.save();
-    res.status(201).json(newViolation);
+    res.status(201).json({ status: "ok", data: newViolation });
   } catch (error) {
     console.error("Error creating violation:", error);
-    res.status(500).json({ error: "Error creating violation" });
+    res.status(500).json({ status: "error", message: "Error creating violation" });
   }
 });
 
