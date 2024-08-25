@@ -8,7 +8,7 @@ const Booking = require("../schema/ride");
 
 router.get("/violation", async (req, res) => {
   try {
-    const violations = await Violations.find();
+    const violations = await Violations.find() .populate('user', 'name');
     res.json(violations);
   } catch (err) {
     console.error("Error fetching violation:", err);
@@ -18,7 +18,7 @@ router.get("/violation", async (req, res) => {
 router.get("/violation/:driverId", async (req, res) => {
   try {
     const driverId = req.params.driverId;
-    const violations = await Violations.findOne({ driver: driverId });
+    const violations = await Violations.findOne({ driver: driverId }) .populate('user', 'name');
     
     if (!violations) {
       return res.status(404).json({ message: "No violations found for this driver." });
