@@ -25,6 +25,7 @@ const ratingsAndFeedbacksSchema = new mongoose.Schema({
   feedback: {
     type: String,
   },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const RatingsAndFeedbacks = mongoose.model(
