@@ -39,7 +39,7 @@ router.get("/ratings/:driverId", async (req, res) => {
   }
 });
 
-router.post("/ratings/:driverId", async (req, res) => {
+router.post("/ratings", async (req, res) => {
   try {
     const driverId = req.params.driverId; 
     const { bookingId, userId, rating, feedback } = req.body;
