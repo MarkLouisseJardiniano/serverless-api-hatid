@@ -15,7 +15,21 @@ router.get("/violation", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
+router.get("/violation/:driverId", async (req, res) => {
+  try {
+    const driverId = req.params.driverId;
+    const violations = await Violations.findOne({ driver: driverId });
+    
+    if (!violations) {
+      return res.status(200).json();
+    }
+    
+    res.status(200).json();
+  } catch (error) {
+    console.error("Error checking violation status:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 
 router.post("/violation", async (req, res) => {
   try {
