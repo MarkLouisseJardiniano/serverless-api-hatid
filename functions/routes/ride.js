@@ -19,16 +19,26 @@ router.get("/booking", async (req, res) => {
   }
 });
 
-// Get available bookings for drivers
 router.get("/available", async (req, res) => {
   try {
-    const bookings = await Booking.find({ status: "pending" });
+    const { driverId } = req.query; // Assuming driverId is passed as a query parameter
+
+    // Find the driver to get their vehicle type
+    const driver = await Driver.findById(driverId);
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    // Fetch bookings that match the driver's vehicle type and are pending
+    const bookings = await Booking.find({ status: "pending", vehicleType: driver.vehicleType });
+
     res.status(200).json({ status: "ok", data: bookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 router.get("/accepted", async (req, res) => {
   try {
     const acceptedBooking = await Booking.find({ status: "accepted" });
