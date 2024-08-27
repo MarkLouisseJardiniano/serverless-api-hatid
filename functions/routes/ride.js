@@ -84,7 +84,6 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
-
 router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId } = req.body;
@@ -124,6 +123,7 @@ router.post("/accept", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 // Cancel a booking
 router.post("/cancel", async (req, res) => {
