@@ -109,8 +109,8 @@ router.post("/accept", async (req, res) => {
     booking.status = "accepted";
     booking.driver = driverId;
     booking.driverLocation = {
-      latitude: driver.latitude,   
-      longitude: driver.longitude  
+      latitude: driver.driverLocation.latitude,
+      longitude: driver.driverLocation.longitude,
     };
     await booking.save();
 
