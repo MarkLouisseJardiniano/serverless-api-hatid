@@ -23,16 +23,13 @@ router.get("/available", async (req, res) => {
   try {
     const { driverId } = req.query;
 
-    // Fetch the driver
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // Determine the vehicle type of the driver
     const vehicleType = driver.vehicleInfo2.vehicleType;
 
-    // Fetch pending bookings matching the driver's vehicle type
     const bookings = await Booking.find({
       status: "pending",
       vehicleType: vehicleType
@@ -55,7 +52,7 @@ router.get("/accepted", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-// Create a new booking
+
 router.post("/create", async (req, res) => {
   const { userId, pickupLocation, destinationLocation, vehicleType, fare } = req.body;
 
@@ -88,7 +85,6 @@ router.post("/create", async (req, res) => {
   }
 });
 
-// Accept a booking
 router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId } = req.body;
@@ -104,8 +100,19 @@ router.post("/accept", async (req, res) => {
       return res.status(400).json({ message: "Booking not available" });
     }
 
+    // Fetch driver’s location
+    const driver = await Driver.findById(driverId);
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    // Update booking with driver’s location
     booking.status = "accepted";
     booking.driver = driverId;
+    booking.driverLocation = {
+      latitude: driver.location.coordinates[1],
+      longitude: driver.location.coordinates[0],
+    };
     await booking.save();
 
     // Populate the driver information
