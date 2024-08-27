@@ -24,10 +24,7 @@ const bookingSchema = new mongoose.Schema({
     default: "pending",
   },
   createdAt: { type: Date, default: Date.now },
-  driverLocation: {
-    latitude: { type: Number,},
-    longitude: { type: Number, },
-  },
+
 });
 
 module.exports = mongoose.model("Booking", bookingSchema);
