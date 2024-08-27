@@ -86,12 +86,12 @@ router.post("/create", async (req, res) => {
 });
 router.post("/accept", async (req, res) => {
   try {
-    const { bookingId, driverId } = req.body;
+    const { bookingId, driverId, driverLocation } = req.body;
 
-    if (!bookingId || !driverId) {
+    if (!bookingId || !driverId || !driverLocation) {
       return res
         .status(400)
-        .json({ message: "Booking ID and Driver ID are required" });
+        .json({ message: "Booking ID, Driver ID, and Driver Location are required" });
     }
 
     const booking = await Booking.findById(bookingId);
@@ -99,13 +99,13 @@ router.post("/accept", async (req, res) => {
       return res.status(400).json({ message: "Booking not available" });
     }
 
-    // Fetch driver’s location
+    // Fetch driver’s information
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // Update booking with driver’s location
+    // Update booking with driver’s location and status
     booking.status = "accepted";
     booking.driver = driverId;
     booking.driverLocation = {
@@ -123,7 +123,6 @@ router.post("/accept", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 // Cancel a booking
 router.post("/cancel", async (req, res) => {
