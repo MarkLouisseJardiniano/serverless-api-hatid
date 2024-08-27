@@ -43,10 +43,12 @@ const driverSchema = new mongoose.Schema({
     required: [true, "Vehicle info 2 is required"],
   },
   createdAt: { type: Date, default: Date.now },
-  driverLocation: {
-      latitude: { type: Number,},
-      longitude: { type: Number, },
-    },
+  location: {
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      required: true
+    }
+  },
 });
 
 const Driver = mongoose.model("Driver", driverSchema);
