@@ -86,9 +86,9 @@ router.post("/create", async (req, res) => {
 });
 router.post("/accept", async (req, res) => {
   try {
-    const { bookingId, driverId, driverLocation } = req.body;
+    const { bookingId, driverId } = req.body;
 
-    if (!bookingId || !driverId || !driverLocation) {
+    if (!bookingId || !driverId ) {
       return res
         .status(400)
         .json({ message: "Booking ID, Driver ID, and Driver Location are required" });
@@ -108,10 +108,6 @@ router.post("/accept", async (req, res) => {
     // Update booking with driver’s location and status
     booking.status = "accepted";
     booking.driver = driverId;
-    booking.driverLocation = {
-      latitude: driverLocation.latitude,
-      longitude: driverLocation.longitude,
-    };
     await booking.save();
 
     // Populate the driver information

@@ -23,10 +23,6 @@ const bookingSchema = new mongoose.Schema({
     enum: ["pending", "accepted", "completed", "canceled"],
     default: "pending",
   },
-  driverLocation: {
-    latitude: { type: Number,},
-    longitude: { type: Number, },
-  },
   createdAt: { type: Date, default: Date.now },
 
 });
