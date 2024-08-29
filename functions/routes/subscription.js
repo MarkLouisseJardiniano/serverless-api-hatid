@@ -100,7 +100,7 @@ router.post("/payment-accept", async (req, res) => {
     subscription.status = "completed";
     await subscription.save();
 
-    return res.status(200).json({ message: "Subscription status updated to completed" });
+    return res.status(200).json(subscription);
 
   } catch (error) {
     console.error("Error updating subscription status:", error);
