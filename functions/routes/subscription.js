@@ -54,7 +54,7 @@ router.post("/subscription", async (req, res) => {
     if (existingSubscription) {
       return res.status(400).json({ message: "Driver already has an active subscription" });
     }
-    
+
     const now = new Date();
     let endDate;
 
@@ -80,7 +80,7 @@ router.post("/subscription", async (req, res) => {
       startDate: new Date(),
       endDate,
       vehicleType,
-      status: "pending"
+      status: "Pending"
     });
 
     await newSubscription.save();
@@ -106,7 +106,7 @@ router.post("/payment-accept", async (req, res) => {
       return res.status(404).json({ message: "Subscription not found" });
     }
 
-    subscription.status = "completed";
+    subscription.status = "Completed";
     await subscription.save();
 
     return res.status(200).json(subscription);

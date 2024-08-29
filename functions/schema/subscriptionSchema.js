@@ -22,11 +22,11 @@ const subscriptionSchema = new mongoose.Schema({
   vehicleType: {
     type: String,
     required: true,
-    enum: ["jeep", "tricycle"],
+    enum: ["Jeep", "Tricycle"],
   },
   status: {
     type: String,
-    enum: ["pending", "completed", "cancelled"],
+    enum: ["Pending", "Completed","Ended", "Cancelled"],
     default: "pending",
   },
 });
