@@ -3,7 +3,6 @@ const router = express.Router();
 const Subscription = require("../schema/subscriptionSchema");
 const Driver = require("../schema/drivers");
 
-
 router.get("/subscription", async (req, res) => {
   try {
     const subscriptions = await Subscription.find();
@@ -14,7 +13,7 @@ router.get("/subscription", async (req, res) => {
   }
 });
 
-// Route to check subscription status
+// Check subscription status for driver online button
 router.get("/subscription/status/:driverId", async (req, res) => {
   try {
     const driverId = req.params.driverId;
@@ -31,6 +30,7 @@ router.get("/subscription/status/:driverId", async (req, res) => {
   }
 });
 
+// Create a new subscription
 router.post("/subscription", async (req, res) => {
   try {
     const { driverId, subscriptionType, vehicleType } = req.body;
@@ -44,11 +44,10 @@ router.post("/subscription", async (req, res) => {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-   
     const existingSubscription = await Subscription.findOne({
       driver: driverId,
-      endDate: { $gte: new Date() }, 
-      status: "completed"
+      endDate: { $gte: new Date() },
+      status: { $in: ["Pending", "Completed"] }
     });
 
     if (existingSubscription) {
@@ -67,10 +66,10 @@ router.post("/subscription", async (req, res) => {
     } else if (subscriptionType === 'Annually') {
       endDate = new Date(now.setFullYear(now.getFullYear() + 1));
     } else {
-      endDate = now; 
+      endDate = now;
     }
 
-    if (!['jeep', 'tricycle'].includes(vehicleType)) {
+    if (!['Jeep', 'Tricycle'].includes(vehicleType)) {
       return res.status(400).json({ message: 'Invalid vehicle type' });
     }
 
@@ -91,13 +90,12 @@ router.post("/subscription", async (req, res) => {
   }
 });
 
-
 router.post("/payment-accept", async (req, res) => {
   try {
-    const { subscriptionId } = req.body; 
+    const { subscriptionId } = req.body;
 
     if (!subscriptionId) {
-      return res.status(400).json({ message: "subscriptionId not found" });
+      return res.status(400).json({ message: "SubscriptionId not found" });
     }
 
     const subscription = await Subscription.findById(subscriptionId);
@@ -117,6 +115,21 @@ router.post("/payment-accept", async (req, res) => {
   }
 });
 
+router.post("/subscription/end-expired", async (req, res) => {
+  try {
+    const now = new Date();
 
+    const updatedSubscriptions = await Subscription.updateMany(
+      { endDate: { $lt: now }, status: { $in: ["Pending", "Completed"] } },
+      { $set: { status: "Ended" } },
+      { multi: true }
+    );
+
+    res.status(200).json({ message: "Expired subscriptions updated", updatedSubscriptions });
+  } catch (error) {
+    console.error("Error updating expired subscriptions:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
 
 module.exports = router;
