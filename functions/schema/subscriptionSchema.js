@@ -24,6 +24,11 @@ const subscriptionSchema = new mongoose.Schema({
     required: true,
     enum: ["jeep", "tricycle"],
   },
+  status: {
+    type: String,
+    enum: ["pending", "completed", "cancelled"],
+    default: "pending",
+  },
 });
 
 const Subscription = mongoose.model("Subscription", subscriptionSchema);

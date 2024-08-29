@@ -99,13 +99,11 @@ router.post("/accept", async (req, res) => {
       return res.status(400).json({ message: "Booking not available" });
     }
 
-    // Fetch driver’s information
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // Update booking with driver’s location and status
     booking.status = "accepted";
     booking.driver = driverId;
     await booking.save();

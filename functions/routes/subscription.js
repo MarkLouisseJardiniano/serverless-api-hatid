@@ -70,7 +70,8 @@ router.post("/subscription", async (req, res) => {
       subscriptionType,
       startDate: new Date(),
       endDate,
-      vehicleType
+      vehicleType,
+      status: "pending"
     });
 
     await newSubscription.save();
@@ -80,6 +81,33 @@ router.post("/subscription", async (req, res) => {
     res.status(500).json({ error: "Error creating subscription" });
   }
 });
+
+
+router.post("/payment-accept", async (req, res) => {
+  try {
+    const { subscriptionId } = req.body; 
+
+    if (!subscriptionId) {
+      return res.status(400).json({ message: "subscriptionId not found" });
+    }
+
+    const subscription = await Subscription.findById(subscriptionId);
+
+    if (!subscription) {
+      return res.status(404).json({ message: "Subscription not found" });
+    }
+
+    subscription.status = "completed";
+    await subscription.save();
+
+    return res.status(200).json({ message: "Subscription status updated to completed" });
+
+  } catch (error) {
+    console.error("Error updating subscription status:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 
 
 module.exports = router;
