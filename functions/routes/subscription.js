@@ -44,23 +44,32 @@ router.post("/subscription", async (req, res) => {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // Determine subscription duration
+   
+    const existingSubscription = await Subscription.findOne({
+      driver: driverId,
+      endDate: { $gte: new Date() }, 
+      status: "completed"
+    });
+
+    if (existingSubscription) {
+      return res.status(400).json({ message: "Driver already has an active subscription" });
+    }
+    
     const now = new Date();
     let endDate;
 
-    if (subscriptionType == 'Free') {
+    if (subscriptionType === 'Free') {
       endDate = new Date(now.setDate(now.getDate() + 7));
-    } else if (subscriptionType == 'Monthly') {
+    } else if (subscriptionType === 'Monthly') {
       endDate = new Date(now.setMonth(now.getMonth() + 1));
-    } else if (subscriptionType == 'Quarterly') {
+    } else if (subscriptionType === 'Quarterly') {
       endDate = new Date(now.setMonth(now.getMonth() + 3));
-    } else if (subscriptionType == 'Annually') {
+    } else if (subscriptionType === 'Annually') {
       endDate = new Date(now.setFullYear(now.getFullYear() + 1));
     } else {
       endDate = now; 
     }
 
-    
     if (!['jeep', 'tricycle'].includes(vehicleType)) {
       return res.status(400).json({ message: 'Invalid vehicle type' });
     }
