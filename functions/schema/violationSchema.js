@@ -19,7 +19,7 @@ const violationSchema = new mongoose.Schema({
   report: {
     type: String
   },
-  createdAt: { type: Date, default: Date.now },
+  timestamps: true
 });
 
 const Violation = mongoose.model("Violation", violationSchema);

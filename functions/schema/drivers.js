@@ -42,8 +42,7 @@ const driverSchema = new mongoose.Schema({
     type: vehicleInfo2Schema,
     required: [true, "Vehicle info 2 is required"],
   },
-  createdAt: { type: Date, default: Date.now },
-
+  timestamps: true
 });
 
 const Driver = mongoose.model("Driver", driverSchema);
