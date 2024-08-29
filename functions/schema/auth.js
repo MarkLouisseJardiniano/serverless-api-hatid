@@ -26,8 +26,9 @@ const userSchema = new mongoose.Schema({
   address: {
     type: String,
     required: true
-  }
-}, { timestamps: true });
+  },
+  createdAt: { type: Date, default: Date.now },
+});
 
 const User = mongoose.model('User', userSchema);
 
