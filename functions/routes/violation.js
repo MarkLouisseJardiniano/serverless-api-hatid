@@ -7,7 +7,9 @@ const Booking = require("../schema/ride");
 
 router.get("/violation", async (req, res) => {
   try {
-    const violations = await Violations.find().populate('user', 'name', 'driver', 'name');
+    const violations = await Violations.find()
+    .populate('user', 'name')
+    .populate('driver', 'name');
     res.status(200).json({ status: "ok", data: violations });
   } catch (err) {
     console.error("Error fetching violations:", err);
