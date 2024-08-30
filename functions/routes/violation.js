@@ -33,7 +33,7 @@ router.get("/violation/:driverId", async (req, res) => {
 
 router.post("/violation", async (req, res) => {
   try {
-    const { bookingId, driverId, userId, report } = req.body;
+    const { bookingId, driverId, userId, report, description } = req.body;
 
     if (!bookingId || !driverId || !userId) {
       return res.status(400).json({ status: "error", message: "Ids not found" });
@@ -56,7 +56,8 @@ router.post("/violation", async (req, res) => {
       booking: bookingId,
       driver: driverId,
       user: userId,
-      report
+      report,
+      description
     });
 
     await newViolation.save();

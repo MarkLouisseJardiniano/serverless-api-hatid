@@ -17,6 +17,10 @@ const violationSchema = new mongoose.Schema({
     required: true
   },
   report: {
+    type: String,
+    enum: ["Harassment", "Unsafe Driving", "Lateness", "Vehicle Condition", "Rudeness"]
+  },
+  description : {
     type: String
   },
   createdAt: { type: Date, default: Date.now },
