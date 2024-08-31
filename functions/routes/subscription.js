@@ -139,7 +139,6 @@ router.post("/subscription/expire", async (req, res) => {
     const now = new Date();
     console.log('Current Date and Time:', now.toISOString());
 
-    // Find subscriptions that are expired and should be updated
     const expiredSubscriptions = await Subscription.find({
       endDate: { $lt: now },
       status: { $in: ["Pending", "Completed"] }
@@ -147,7 +146,6 @@ router.post("/subscription/expire", async (req, res) => {
 
     console.log('Expired Subscriptions Found:', expiredSubscriptions);
 
-    // Update the status of expired subscriptions
     const updateResult = await Subscription.updateMany(
       { endDate: { $lt: now }, status: { $in: ["Pending", "Completed"] } },
       { $set: { status: "Ended" } }
