@@ -97,7 +97,8 @@ router.post("/subscription", async (req, res) => {
       startDate: new Date(),
       endDate,
       vehicleType,
-      status: "Pending"
+      status: "Pending",
+      price: 0
     });
 
     await newSubscription.save();
