@@ -1,15 +1,23 @@
 const cron = require('node-cron');
-const axios = require('axios');
+const express = require('express');
+const router = express.Router();
+const Subscription = require("./schema/subscriptionSchema");
 
-// Define the URL to your endpoint that updates expired subscriptions
-const UPDATE_EXPIRED_URL = 'http://localhost:5000/subscription/end-expired'; // Adjust URL as needed
-
-// Schedule the task to run daily at midnight
 cron.schedule('0 0 * * *', async () => {
   try {
-    const response = await axios.post(UPDATE_EXPIRED_URL);
-    console.log('Expired subscriptions updated:', response.data);
+    const now = new Date();
+    const result = await Subscription.updateMany(
+      {
+        endDate: { $lt: now },
+        status: { $in: ["Pending", "Completed"] }
+      },
+      { $set: { status: "Ended" } }
+    );
+
+    console.log("Expired subscriptions updated:", result);
   } catch (error) {
-    console.error('Error updating expired subscriptions:', error);
+    console.error("Error updating expired subscriptions:", error);
   }
 });
+
+module.exports = router;

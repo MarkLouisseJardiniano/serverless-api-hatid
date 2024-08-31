@@ -11,11 +11,10 @@ const fareRouter = require("./routes/fare");
 const subsRouter = require("./routes/subscription");
 const ratingRouter = require("./routes/ratingsAndFeedback");
 const violateRouter = require("./routes/violation");
-const cron = require('./cron')
+
 
 const app = express();
 const server = http.createServer(app);
-const io = require('socket.io')(server)
 
 const dbCloudUrl = "mongodb+srv://Mawi:Mawi21@cluster0.twni9tv.mongodb.net/Hatid?retryWrites=true&w=majority&appName=Cluster0";
 
