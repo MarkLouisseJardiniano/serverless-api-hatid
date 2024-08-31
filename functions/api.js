@@ -11,6 +11,7 @@ const fareRouter = require("./routes/fare");
 const subsRouter = require("./routes/subscription");
 const ratingRouter = require("./routes/ratingsAndFeedback");
 const violateRouter = require("./routes/violation");
+const cron = require('./cron')
 
 const app = express();
 const server = http.createServer(app);
