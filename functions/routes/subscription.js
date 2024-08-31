@@ -134,25 +134,26 @@ router.post("/payment-accept", async (req, res) => {
   }
 });
 
-router.post("/subscription/end-expired", async (req, res) => {
+const updateExpiredSubscriptions = async () => {
   try {
-    const now = new Date(); 
+    const now = new Date();
 
-  
     const result = await Subscription.updateMany(
       {
-        endDate: { $lt: now }, 
-        status: { $in: ["Pending", "Completed"] } 
+        endDate: { $lt: now },
+        status: { $in: ["Pending", "Completed"] }
       },
-      { $set: { status: "Ended" } } 
+      { $set: { status: "Ended" } }
     );
 
-    res.status(200).json({ message: "Expired subscriptions updated", result });
+    console.log("Expired subscriptions updated:", result);
   } catch (error) {
     console.error("Error updating expired subscriptions:", error);
-    res.status(500).json({ message: "Internal server error" });
   }
-});
+};
+
+// Run the update task every hour
+setInterval(updateExpiredSubscriptions, 3600000);
 
 
 module.exports = router;

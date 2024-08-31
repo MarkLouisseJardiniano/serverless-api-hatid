@@ -11,6 +11,7 @@ const fareRouter = require("./routes/fare");
 const subsRouter = require("./routes/subscription");
 const ratingRouter = require("./routes/ratingsAndFeedback");
 const violateRouter = require("./routes/violation");
+const { startScheduledTasks } = require("./routes/subscriptionEndTasks");
 
 const app = express();
 const server = http.createServer(app);
@@ -25,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 mongoose.connect(dbCloudUrl)
   .then(() => console.log("Connected to MongoDB"))
   .catch((error) => console.error("Failed to connect to MongoDB", error));
-
+  startScheduledTasks();
 app.use("/.netlify/functions/api", router);
 app.use("/.netlify/functions/api/driver", driverRouter);
 app.use("/.netlify/functions/api/ride", rideRouter);
