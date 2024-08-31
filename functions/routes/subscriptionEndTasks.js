@@ -17,9 +17,8 @@ const updateExpiredSubscriptions = async () => {
   }
 };
 
-// Run the update task every hour
 const startScheduledTasks = () => {
-  setInterval(updateExpiredSubscriptions, 3600000); // 3600000 ms = 1 hour
+  setInterval(updateExpiredSubscriptions, 3000); 
 };
 
 module.exports = { startScheduledTasks };
