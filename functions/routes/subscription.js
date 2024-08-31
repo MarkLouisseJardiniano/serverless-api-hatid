@@ -136,19 +136,23 @@ router.post("/payment-accept", async (req, res) => {
 
 router.post("/subscription/end-expired", async (req, res) => {
   try {
-    const now = new Date();
+    const now = new Date(); 
 
-    const updatedSubscriptions = await Subscription.updateMany(
-      { endDate: { $lt: now }, status: { $in: ["Pending", "Completed"] } },
-      { $set: { status: "Ended" } },
-      { multi: true }
+  
+    const result = await Subscription.updateMany(
+      {
+        endDate: { $lt: now }, 
+        status: { $in: ["Pending", "Completed"] } 
+      },
+      { $set: { status: "Ended" } } 
     );
 
-    res.status(200).json({ message: "Expired subscriptions updated", updatedSubscriptions });
+    res.status(200).json({ message: "Expired subscriptions updated", result });
   } catch (error) {
     console.error("Error updating expired subscriptions:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 module.exports = router;
