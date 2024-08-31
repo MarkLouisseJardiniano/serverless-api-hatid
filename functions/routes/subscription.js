@@ -137,16 +137,30 @@ router.post("/payment-accept", async (req, res) => {
 router.post("/subscription/expire", async (req, res) => {
   try {
     const now = new Date();
-    const expiredSubscriptions = await Subscription.updateMany(
+    console.log('Current Date and Time:', now.toISOString());
+
+    // Find subscriptions that are expired and should be updated
+    const expiredSubscriptions = await Subscription.find({
+      endDate: { $lt: now },
+      status: { $in: ["Pending", "Completed"] }
+    });
+
+    console.log('Expired Subscriptions Found:', expiredSubscriptions);
+
+    // Update the status of expired subscriptions
+    const updateResult = await Subscription.updateMany(
       { endDate: { $lt: now }, status: { $in: ["Pending", "Completed"] } },
       { $set: { status: "Ended" } }
     );
 
-    res.status(200).json({ message: `${expiredSubscriptions.matchedCount} subscriptions updated to "Ended"` });
+    console.log('Update Result:', updateResult);
+
+    res.status(200).json({ message: `${updateResult.matchedCount} subscriptions updated to "Ended"` });
   } catch (error) {
     console.error("Error updating expired subscriptions:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 module.exports = router;
