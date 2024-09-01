@@ -13,7 +13,13 @@ const bookingSchema = new mongoose.Schema({
     latitude: { type: Number, required: true },
     longitude: { type: Number, required: true },
   },
-  vehicleType: { type: String, enum: ["Tricycle", "Jeep" ], required: true },
+  driverLocation: {
+    latitude: {type: Number},
+    longitude: {type: Number},
+  },
+  vehicleType: { 
+    type: String, 
+    enum: ["Tricycle", "Jeep" ], required: true },
   fare: {
     type: Number,
     required: true,

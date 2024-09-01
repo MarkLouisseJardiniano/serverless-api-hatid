@@ -61,7 +61,6 @@ router.post("/create", async (req, res) => {
   }
 
   try {
-    // Fetch the user's detail
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -88,10 +87,10 @@ router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId } = req.body;
 
-    if (!bookingId || !driverId ) {
+    if (!bookingId || !driverId) {
       return res
         .status(400)
-        .json({ message: "Booking ID, Driver ID, and Driver Location are required" });
+        .json({ message: "Booking ID and Driver ID are required" });
     }
 
     const booking = await Booking.findById(bookingId);
@@ -104,8 +103,14 @@ router.post("/accept", async (req, res) => {
       return res.status(404).json({ message: "Driver not found" });
     }
 
+    // Assign driver details to the booking
     booking.status = "accepted";
     booking.driver = driverId;
+    booking.driverLocation = {
+      latitude: latitude, 
+      longitude: longitude,
+    };
+
     await booking.save();
 
     // Populate the driver information
@@ -117,6 +122,7 @@ router.post("/accept", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 router.delete("/delete-all", async (req, res) => {
   try {
