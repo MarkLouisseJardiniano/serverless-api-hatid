@@ -82,38 +82,37 @@ router.post("/create", async (req, res) => {
     console.error("Error creating booking:", error);
     res.status(500).json({ error: "Error creating booking" });
   }
-});
-router.post("/accept", async (req, res) => {
+});router.post("/accept", async (req, res) => {
   try {
-    const { bookingId, driverId } = req.body;
+    const { bookingId, driverId, latitude, longitude } = req.body;
 
-    if (!bookingId || !driverId) {
+    if (!bookingId || !driverId || latitude == null || longitude == null) {
       return res
         .status(400)
-        .json({ message: "Booking ID and Driver ID are required" });
+        .json({ message: "Booking ID, Driver ID, and driver location are required" });
     }
 
     const booking = await Booking.findById(bookingId);
     if (!booking || booking.status !== "pending") {
-      return res.status(400).json({ message: "Booking not available" });
+      return res.status(400).json({ message: "Booking not available or not pending" });
     }
 
+   
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // Assign driver details to the booking
+ 
     booking.status = "accepted";
     booking.driver = driverId;
     booking.driverLocation = {
       latitude: latitude, 
       longitude: longitude,
     };
-
     await booking.save();
 
-    // Populate the driver information
+    
     const updatedBooking = await Booking.findById(bookingId).populate("driver");
 
     res.status(200).json({ status: "ok", data: updatedBooking });
@@ -122,6 +121,7 @@ router.post("/accept", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 
 router.delete("/delete-all", async (req, res) => {
