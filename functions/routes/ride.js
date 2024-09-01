@@ -118,7 +118,16 @@ router.post("/accept", async (req, res) => {
   }
 });
 
-// Cancel a booking
+router.delete("/delete-all", async (req, res) => {
+  try {
+    const result = await Booking.deleteMany({});
+    res.status(200).json({ status: "ok", message: "All bookings deleted", deletedCount: result.deletedCount });
+  } catch (error) {
+    console.error("Error deleting all bookings:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 router.post("/cancel", async (req, res) => {
   try {
     const { bookingId } = req.body;
