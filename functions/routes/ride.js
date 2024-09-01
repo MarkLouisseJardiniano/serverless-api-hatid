@@ -43,16 +43,12 @@ router.get("/available", async (req, res) => {
 });
 
 
-router.get("/accepted/:id", async (req, res) => {
+router.get("/accepted", async (req, res) => {
   try {
-    const { id } = req.params;
-    const acceptedBooking = await Booking.findOne({ _id: id, status: "accepted" });
-    if (!acceptedBooking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
+    const acceptedBooking = await Booking.find({ status: "accepted" });
     res.status(200).json({ status: "ok", data: acceptedBooking });
   } catch (error) {
-    console.error("Error fetching accepted booking by ID:", error);
+    console.error("Error fetching accepted bookings:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
