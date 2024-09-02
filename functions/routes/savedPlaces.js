@@ -16,30 +16,33 @@ router.get("/saved-place", async (req, res) => {
   });
 
   
-router.post("/saved-place", async (req, res) => {
-    const { userId , placeType, savedLocation } = req.body;
+  router.post("/saved-place", async (req, res) => {
+    const { userId, placeType, savedLocation } = req.body;
   
-    if (!userId || placeType || savedLocation ) {
+    // Check if any of the fields are missing
+    if (!userId || !placeType || !savedLocation || !savedLocation.latitude || !savedLocation.longitude) {
       return res.status(400).json({ error: "All fields are required" });
     }
+  
     try {
-
-
-        const newSavedPlaces = new SavedPlace({
-            user: userId,
-            placeType: placeType, 
-            savedLocation
-          });
-      
-          await newSavedPlaces.save();
-          res.status(201).json({
-            message: 'Saved Place Successfully',
-            data: newSavedPlaces
-          });
-        } catch (error) {
-          console.error("Error creating saved places:", error);
-          res.status(500).json({ message: "Internal server error" });
+      const newSavedPlace = new SavedPlace({
+        user: userId,
+        placeType: placeType,
+        savedLocation: {
+          latitude: savedLocation.latitude,
+          longitude: savedLocation.longitude,
         }
-    
+      });
+  
+      await newSavedPlace.save();
+      res.status(201).json({
+        message: 'Saved Place Successfully',
+        data: newSavedPlace
+      });
+    } catch (error) {
+      console.error("Error creating saved place:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
+  
 module.exports = router;
