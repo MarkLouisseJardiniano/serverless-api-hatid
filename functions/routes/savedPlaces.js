@@ -26,7 +26,7 @@ router.get("/saved-place", async (req, res) => {
   
     try {
       const newSavedPlace = new SavedPlace({
-        userId,
+        user: userId,
         placeType: placeType,
         savedLocation: {
           latitude: savedLocation.latitude,
