@@ -16,16 +16,15 @@ router.get("/saved-place", async (req, res) => {
   });
 
   
-  router.post("/saved-place/:id", async (req, res) => {
-    const userId = req.params.id;
-    const { placeType, savedLocation } = req.body;
-
+  router.post("/saved-place", async (req, res) => {
+    const { userId, placeType, savedLocation } = req.body;
+  
+    // Check if any of the fields are missing
     if (!userId || !placeType || !savedLocation || !savedLocation.latitude || !savedLocation.longitude) {
       return res.status(400).json({ error: "All fields are required" });
     }
   
     try {
-  
       const newSavedPlace = new SavedPlace({
         user: userId,
         placeType: placeType,
@@ -45,6 +44,5 @@ router.get("/saved-place", async (req, res) => {
       res.status(500).json({ message: "Internal server error" });
     }
   });
-  
   
 module.exports = router;
