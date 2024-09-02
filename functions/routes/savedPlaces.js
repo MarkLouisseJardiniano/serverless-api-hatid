@@ -17,9 +17,9 @@ router.get("/saved-place", async (req, res) => {
 
   
 router.post("/saved-place", async (req, res) => {
-    const { userId , placeType, savedLocation } = req.body;
+    const { userId , placeType, latitude, longitude } = req.body;
   
-    if (!userId || placeType || savedLocation ) {
+    if (!userId || placeType || latitude || longitude ) {
       return res.status(400).json({ error: "All fields are required" });
     }
     try {
