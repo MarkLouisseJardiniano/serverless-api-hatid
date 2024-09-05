@@ -17,6 +17,22 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/driver/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const driver = await Driver.findById(id);
+
+    if (!driver) {
+      return res.status(404).json({ message: 'Driver not found' });
+    }
+
+    res.json(driver);
+  } catch (err) {
+    console.error('Error fetching drive by ID:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 router.post('/driver-signup', async (req, res) => {
   try {
     // Log the incoming request body to see what data is being received
