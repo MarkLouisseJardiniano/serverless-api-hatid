@@ -11,7 +11,8 @@ const fareRouter = require("./routes/fare");
 const subsRouter = require("./routes/subscription");
 const ratingRouter = require("./routes/ratingsAndFeedback");
 const violateRouter = require("./routes/violation");
-const savedPlacesRouter = require("./routes/savedPlaces")
+const savedPlacesRouter = require("./routes/savedPlaces");
+const contactRouter = require("./routes/contacts");
 
 
 const app = express();
@@ -34,6 +35,6 @@ app.use("/.netlify/functions/api/subs", subsRouter);
 app.use("/.netlify/functions/api/rate", ratingRouter);
 app.use("/.netlify/functions/api/violate", violateRouter);
 app.use("/.netlify/functions/api/saved", savedPlacesRouter);
-
+app.use("/.netlify/functions/api/contact", contactRouter);
 
 module.exports.handler = serverless(app);
