@@ -39,21 +39,20 @@ const subscriptionSchema = new mongoose.Schema({
 subscriptionSchema.pre("save", function (next) {
   const subscription = this;
 
-  // Define pricing logic based on vehicle type and subscription type
   const pricing = {
     Jeep: {
       None: 0,
       Free: 0,
-      Monthly: 500,
-      Quarterly: 1400,
-      Annually: 5000,
+      Monthly: 399,
+      Quarterly: 1299,
+      Annually: 4599,
     },
     Tricycle: {
       None: 0,
       Free: 0,
-      Monthly: 300,
-      Quarterly: 800,
-      Annually: 3000,
+      Monthly: 499,
+      Quarterly: 1499,
+      Annually: 4799,
     },
   };
 
