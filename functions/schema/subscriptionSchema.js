@@ -43,20 +43,19 @@ subscriptionSchema.pre("save", function (next) {
     Jeep: {
       None: 0,
       Free: 0,
-      Monthly: 399,
-      Quarterly: 1299,
-      Annually: 4599,
-    },
-    Tricycle: {
-      None: 0,
-      Free: 0,
       Monthly: 499,
       Quarterly: 1499,
       Annually: 4799,
     },
+    Tricycle: {
+      None: 0,
+      Free: 0,
+      Monthly: 399,
+      Quarterly: 1299,
+      Annually: 4599,
+    },
   };
 
-  // Calculate the price based on vehicle type and subscription type
   subscription.price = pricing[subscription.vehicleType][subscription.subscriptionType];
 
   next();
