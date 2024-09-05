@@ -2,6 +2,11 @@ const express = require("express");
 const router = express.Router();
 const Contact = require("../schema/contacts")
 
+const sampleContacts = [
+    { _id: "1", name: "BFP", number: "1234567890" },
+    { _id: "2", name: "PNP", number: "0987654321" },
+  ];
+
 router.get("/", async (req, res) => {
     try {
       const contacts = await Contact.find();
@@ -39,20 +44,21 @@ router.get("/", async (req, res) => {
     }
   });
   
-  // GET contacts by user ID
   router.get("/user/:userId", async (req, res) => {
     try {
       const { userId } = req.params;
-      const contacts = await Contact.find({ user: userId });
+      const userContacts = await Contact.find({ user: userId });
   
-      if (contacts.length === 0) {
-        return res.status(404).json({ message: "No contacts found for this user" });
-      }
+      // Combine the sample contacts with the user's actual contacts
+      const allContacts = [...sampleContacts, ...userContacts];
   
-      res.json(contacts);
+      // Return both sample and user contacts
+      res.json(allContacts);
     } catch (error) {
       console.error("Error fetching contacts by user ID:", error);
       res.status(500).json({ error: "Failed to fetch contacts" });
     }
   });
+
+  
 module.exports = router;
