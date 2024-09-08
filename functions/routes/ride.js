@@ -22,10 +22,6 @@ router.get("/available", async (req, res) => {
   try {
     const { driverId } = req.query;
 
-    if (!driverId) {
-      return res.status(400).json({ message: "Driver ID is required" });
-    }
-
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
@@ -35,7 +31,7 @@ router.get("/available", async (req, res) => {
 
     const existingSpecialBooking = await Booking.findOne({
       driver: driverId,
-      status: { $in: ["accepted"] },
+      status: "accepted",
       rideType: "Special"
     });
 
@@ -43,7 +39,8 @@ router.get("/available", async (req, res) => {
     
       const bookings = await Booking.find({
         status: "pending",
-        vehicleType: vehicleType
+        vehicleType: vehicleType,
+        rideType: "Special"
       }).limit(1); 
 
       return res.status(200).json({ status: "ok", data: bookings });
