@@ -18,7 +18,14 @@ const bookingSchema = new mongoose.Schema({
   },
   vehicleType: { 
     type: String, 
-    enum: ["Tricycle", "Jeep" ], required: true },
+    enum: ["Tricycle", "Jeep" ], 
+    required: true
+   },
+   rideType: { 
+    type: String, 
+    enum: ["Special", "Shared Ride" ], 
+    required: true 
+  },
   fare: {
     type: Number,
     required: true,

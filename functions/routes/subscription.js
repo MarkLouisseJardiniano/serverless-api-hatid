@@ -65,7 +65,7 @@ router.post("/subscription", async (req, res) => {
     const existingSubscription = await Subscription.findOne({
       driver: driverId,
       endDate: { $gte: new Date() },
-      status: { $in: ["Pending", "Completed"] }
+      status: { $in: ["Pending", "Active"] }
     });
 
     if (existingSubscription) {
@@ -123,7 +123,7 @@ router.post("/payment-accept", async (req, res) => {
       return res.status(404).json({ message: "Subscription not found" });
     }
 
-    subscription.status = "Completed";
+    subscription.status = "Active";
     await subscription.save();
 
     return res.status(200).json(subscription);
@@ -141,13 +141,13 @@ router.post("/subscription/expire", async (req, res) => {
 
     const expiredSubscriptions = await Subscription.find({
       endDate: { $lt: now },
-      status: { $in: ["Pending", "Completed"] }
+      status: { $in: ["Pending", "Active"] }
     });
 
     console.log('Expired Subscriptions Found:', expiredSubscriptions);
 
     const updateResult = await Subscription.updateMany(
-      { endDate: { $lt: now }, status: { $in: ["Pending", "Completed"] } },
+      { endDate: { $lt: now }, status: { $in: ["Pending", "Active"] } },
       { $set: { status: "Ended" } }
     );
 

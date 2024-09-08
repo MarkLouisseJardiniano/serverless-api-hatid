@@ -6,7 +6,6 @@ const Driver = require('../schema/drivers');
 const router = express.Router();
 const JWT_SECRET = "IWEFHsdfIHCW362weg47HGV3GB4678{]JKAsadFIH";
 
-// Get all users (just an example, adjust as per your needs)
 router.get('/', async (req, res) => {
     try {
         const drivers = await Driver.find();

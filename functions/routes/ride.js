@@ -22,6 +22,10 @@ router.get("/available", async (req, res) => {
   try {
     const { driverId } = req.query;
 
+    if (!driverId) {
+      return res.status(400).json({ message: "Driver ID is required" });
+    }
+
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
@@ -29,12 +33,30 @@ router.get("/available", async (req, res) => {
 
     const vehicleType = driver.vehicleInfo2.vehicleType;
 
-    const bookings = await Booking.find({
-      status: "pending",
-      vehicleType: vehicleType
+    const existingSpecialBooking = await Booking.findOne({
+      driver: driverId,
+      status: { $in: ["accepted"] },
+      rideType: "Special"
     });
 
-    res.status(200).json({ status: "ok", data: bookings });
+    if (existingSpecialBooking) {
+    
+      const bookings = await Booking.find({
+        status: "pending",
+        vehicleType: vehicleType
+      }).limit(1); 
+
+      return res.status(200).json({ status: "ok", data: bookings });
+    } else {
+    
+      const bookings = await Booking.find({
+        status: "pending",
+        vehicleType: vehicleType,
+        rideType: "Shared Ride"
+      }).limit(4);
+
+      return res.status(200).json({ status: "ok", data: bookings });
+    }
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
@@ -53,9 +75,9 @@ router.get("/accepted", async (req, res) => {
 });
 
 router.post("/create", async (req, res) => {
-  const { userId, pickupLocation, destinationLocation, vehicleType, fare } = req.body;
+  const { userId, pickupLocation, destinationLocation, vehicleType, rideType, fare } = req.body;
 
-  if (!userId || !pickupLocation || !destinationLocation || !vehicleType || fare == null) {
+  if (!userId || !pickupLocation || !destinationLocation || !vehicleType || rideType || fare == null) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
@@ -71,6 +93,7 @@ router.post("/create", async (req, res) => {
       pickupLocation,
       destinationLocation,
       vehicleType,
+      rideType,
       fare,
       status: "pending",
     });
