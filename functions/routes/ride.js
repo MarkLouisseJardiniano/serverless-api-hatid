@@ -29,31 +29,24 @@ router.get("/available", async (req, res) => {
 
     const vehicleType = driver.vehicleInfo2.vehicleType;
 
-    const existingSpecialBooking = await Booking.findOne({
+    const currentBooking = await Booking.findOne({
       driver: driverId,
-      status: "accepted",
-      rideType: "Special"
-    });
+      status: { $in: ["accepted", "rejected"] }
+    }).sort({ updatedAt: -1 });
 
-    if (existingSpecialBooking) {
-    
-      const bookings = await Booking.find({
-        status: "pending",
-        vehicleType: vehicleType,
-        rideType: "Special"
-      }).limit(1); 
+    let query = {
+      status: "pending",
+      vehicleType: vehicleType
+    };
 
-      return res.status(200).json({ status: "ok", data: bookings });
-    } else {
-    
-      const bookings = await Booking.find({
-        status: "pending",
-        vehicleType: vehicleType,
-        rideType: "Shared Ride"
-      }).limit(4);
 
-      return res.status(200).json({ status: "ok", data: bookings });
+    if (currentBooking) {
+      query._id = { $ne: currentBooking._id };
     }
+
+    const newBooking = await Booking.findOne(query).sort({ createdAt: 1 });
+
+    res.status(200).json({ status: "ok", data: newBooking ? [newBooking] : [] });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
@@ -74,7 +67,7 @@ router.get("/accepted", async (req, res) => {
 router.post("/create", async (req, res) => {
   const { userId, pickupLocation, destinationLocation, vehicleType, rideType, fare } = req.body;
 
-  if (!userId || !pickupLocation || !destinationLocation || !vehicleType || !rideType || fare == null) {
+  if (!userId || !pickupLocation || !destinationLocation || !vehicleType || rideType || fare == null) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
