@@ -67,7 +67,7 @@ router.get("/accepted", async (req, res) => {
 router.post("/create", async (req, res) => {
   const { userId, pickupLocation, destinationLocation, vehicleType, rideType, fare } = req.body;
 
-  if (!userId || !pickupLocation || !destinationLocation || !vehicleType || rideType || fare == null) {
+  if (!userId || !pickupLocation || !destinationLocation || !vehicleType || !rideType || fare == null) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
