@@ -95,7 +95,6 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
-
 router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude } = req.body;
@@ -106,32 +105,51 @@ router.post("/accept", async (req, res) => {
         .json({ message: "Booking ID, Driver ID, and driver location are required" });
     }
 
+    // Fetch the booking to be accepted
     const booking = await Booking.findById(bookingId);
     if (!booking || booking.status !== "pending") {
       return res.status(400).json({ message: "Booking not available or not pending" });
     }
 
+    // Fetch the driver
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
+    // Accept the booking
     booking.status = "accepted";
     booking.driver = driverId;
     booking.driverLocation = {
-      latitude: latitude, 
+      latitude: latitude,
       longitude: longitude,
     };
     await booking.save();
 
-    const updatedBooking = await Booking.findById(bookingId).populate("driver");
+    // Determine if the accepted booking is a "Shared Ride"
+    let newBooking = null;
+    if (booking.rideType === "Shared Ride") {
+      // Find the next pending booking of the same type and vehicle type
+      newBooking = await Booking.findOne({
+        status: "pending",
+        vehicleType: booking.vehicleType,
+        rideType: "Shared Ride"
+      }).sort({ createdAt: 1 });
+    }
 
-    res.status(200).json({ status: "ok", data: updatedBooking });
+    res.status(200).json({ 
+      status: "ok",
+      data: {
+        acceptedBooking: booking,
+        newBooking: newBooking ? [newBooking] : []
+      }
+    });
   } catch (error) {
     console.error("Error accepting booking:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 router.delete("/delete-all", async (req, res) => {
   try {
