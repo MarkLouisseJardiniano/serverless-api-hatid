@@ -21,14 +21,12 @@ router.get("/booking", async (req, res) => {
 router.get("/available", async (req, res) => {
   try {
     const { driverId } = req.query;
-
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
     const vehicleType = driver.vehicleInfo2.vehicleType;
-
     const currentBooking = await Booking.findOne({
       driver: driverId,
       status: { $in: ["accepted", "rejected"] }
@@ -39,19 +37,18 @@ router.get("/available", async (req, res) => {
       vehicleType: vehicleType
     };
 
-
     if (currentBooking) {
       query._id = { $ne: currentBooking._id };
     }
 
-    const newBooking = await Booking.findOne(query).sort({ createdAt: 1 });
-
-    res.status(200).json({ status: "ok", data: newBooking ? [newBooking] : [] });
+    const newBookings = await Booking.find(query).sort({ createdAt: 1 });
+    res.status(200).json({ status: "ok", data: newBookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 
 router.get("/accepted", async (req, res) => {
@@ -95,6 +92,7 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
+
 router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude } = req.body;
@@ -105,7 +103,6 @@ router.post("/accept", async (req, res) => {
         .json({ message: "Booking ID, Driver ID, and driver location are required" });
     }
 
-    // Fetch the booking to be accepted
     const booking = await Booking.findById(bookingId);
     if (!booking || booking.status !== "pending") {
       return res.status(400).json({ message: "Booking not available or not pending" });
