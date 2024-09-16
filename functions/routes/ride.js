@@ -17,28 +17,32 @@ router.get("/booking", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+
 router.get("/available", async (req, res) => {
   try {
-  
-    const { driverId } = req.query;
+    const { driverId, vehicleType } = req.query;
+    
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
-    const vehicleType = driver.vehicleInfo2.vehicleType;
+    
+    // Default to the driver's vehicle type if vehicleType is not provided
+    const searchVehicleType = vehicleType || driver.vehicleInfo2.vehicleType;
 
     // Fetch pending bookings matching the driver's vehicle type
     const bookings = await Booking.find({
       status: "pending",
-      vehicleType: vehicleType
+      vehicleType: searchVehicleType
     });
+
     res.status(200).json({ status: "ok", data: bookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 router.get("/accepted", async (req, res) => {
   try {
