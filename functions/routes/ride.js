@@ -18,31 +18,38 @@ router.get("/booking", async (req, res) => {
   }
 });
 
-
 router.get("/available", async (req, res) => {
   try {
-    const { driverId, vehicleType } = req.query;
-    
+    const { driverId } = req.query;
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
-    
-    // Default to the driver's vehicle type if vehicleType is not provided
-    const searchVehicleType = vehicleType || driver.vehicleInfo2.vehicleType;
 
-    // Fetch pending bookings matching the driver's vehicle type
-    const bookings = await Booking.find({
+    const vehicleType = driver.vehicleInfo2.vehicleType;
+    const currentBooking = await Booking.findOne({
+      driver: driverId,
+      status: { $in: ["accepted", "rejected"] }
+    }).sort({ updatedAt: -1 });
+
+    let query = {
       status: "pending",
-      vehicleType: searchVehicleType
-    });
+      vehicleType: vehicleType
+    };
 
-    res.status(200).json({ status: "ok", data: bookings });
+    if (currentBooking) {
+      query._id = { $ne: currentBooking._id };
+    }
+
+    const newBookings = await Booking.find(query).sort({ createdAt: 1 });
+    res.status(200).json({ status: "ok", data: newBookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+
 
 router.get("/accepted", async (req, res) => {
   try {
@@ -84,15 +91,18 @@ router.post("/create", async (req, res) => {
     console.error("Error creating booking:", error);
     res.status(500).json({ error: "Error creating booking" });
   }
-});router.post("/accept", async (req, res) => {
+});
+
+router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude } = req.body;
 
     if (!bookingId || !driverId || latitude == null || longitude == null) {
-      return res.status(400).json({ message: "Booking ID, Driver ID, and driver location are required" });
+      return res
+        .status(400)
+        .json({ message: "Booking ID, Driver ID, and driver location are required" });
     }
 
-    // Fetch the booking
     const booking = await Booking.findById(bookingId);
     if (!booking || booking.status !== "pending") {
       return res.status(400).json({ message: "Booking not available or not pending" });
@@ -104,54 +114,33 @@ router.post("/create", async (req, res) => {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // If ride type is Shared Ride, don't restrict the driver to one booking
+    // Accept the booking
+    booking.status = "accepted";
+    booking.driver = driverId;
+    booking.driverLocation = {
+      latitude: latitude,
+      longitude: longitude,
+    };
+    await booking.save();
+
+    // Determine if the accepted booking is a "Shared Ride"
+    let newBooking = null;
     if (booking.rideType === "Shared Ride") {
-      booking.status = "accepted";
-      booking.driver = driverId;
-      booking.driverLocation = {
-        latitude: latitude,
-        longitude: longitude,
-      };
-      await booking.save();
-
-      // Respond with the accepted booking
-      return res.status(200).json({
-        status: "ok",
-        data: {
-          acceptedBooking: booking,
-        },
-      });
+      // Find the next pending booking of the same type and vehicle type
+      newBooking = await Booking.findOne({
+        status: "pending",
+        vehicleType: booking.vehicleType,
+        rideType: "Shared Ride"
+      }).sort({ createdAt: 1 });
     }
 
-    // For other ride types, ensure the driver is not already assigned a booking
-    if (booking.rideType === "Special") {
-      const existingBooking = await Booking.findOne({
-        driver: driverId,
-        status: "accepted",
-      });
-
-      if (existingBooking) {
-        return res.status(400).json({ message: "Driver already has an accepted booking" });
+    res.status(200).json({ 
+      status: "ok",
+      data: {
+        acceptedBooking: booking,
+        newBooking: newBooking ? [newBooking] : []
       }
-
-      booking.status = "accepted";
-      booking.driver = driverId;
-      booking.driverLocation = {
-        latitude: latitude,
-        longitude: longitude,
-      };
-      await booking.save();
-
-      // Respond with the accepted booking
-      return res.status(200).json({
-        status: "ok",
-        data: {
-          acceptedBooking: booking,
-        },
-      });
-    }
-
-    res.status(400).json({ message: "Invalid ride type" });
+    });
   } catch (error) {
     console.error("Error accepting booking:", error);
     res.status(500).json({ message: "Server Error" });
