@@ -19,7 +19,13 @@ router.get("/booking", async (req, res) => {
 });
 router.get("/available", async (req, res) => {
   try {
-    const bookings = await Booking.find({ status: "pending" });
+    const vehicleType = driver.vehicleInfo2.vehicleType;
+
+    // Fetch pending bookings matching the driver's vehicle type
+    const bookings = await Booking.find({
+      status: "pending",
+      vehicleType: vehicleType
+    });
     res.status(200).json({ status: "ok", data: bookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
