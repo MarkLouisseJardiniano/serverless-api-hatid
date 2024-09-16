@@ -80,17 +80,15 @@ router.post("/create", async (req, res) => {
     console.error("Error creating booking:", error);
     res.status(500).json({ error: "Error creating booking" });
   }
-});
-router.post("/accept", async (req, res) => {
+});router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude } = req.body;
 
     if (!bookingId || !driverId || latitude == null || longitude == null) {
-      return res
-        .status(400)
-        .json({ message: "Booking ID, Driver ID, and driver location are required" });
+      return res.status(400).json({ message: "Booking ID, Driver ID, and driver location are required" });
     }
 
+    // Fetch the booking
     const booking = await Booking.findById(bookingId);
     if (!booking || booking.status !== "pending") {
       return res.status(400).json({ message: "Booking not available or not pending" });
@@ -102,28 +100,59 @@ router.post("/accept", async (req, res) => {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // Accept the booking
-    booking.status = "accepted";
-    booking.driver = driverId;
-    booking.driverLocation = {
-      latitude: latitude,
-      longitude: longitude,
-    };
-    await booking.save();
+    // If ride type is Shared Ride, don't restrict the driver to one booking
+    if (booking.rideType === "Shared Ride") {
+      booking.status = "accepted";
+      booking.driver = driverId;
+      booking.driverLocation = {
+        latitude: latitude,
+        longitude: longitude,
+      };
+      await booking.save();
 
-    // Respond with the accepted booking
-    res.status(200).json({
-      status: "ok",
-      data: {
-        acceptedBooking: booking,
-      },
-    });
+      // Respond with the accepted booking
+      return res.status(200).json({
+        status: "ok",
+        data: {
+          acceptedBooking: booking,
+        },
+      });
+    }
+
+    // For other ride types, ensure the driver is not already assigned a booking
+    if (booking.rideType === "Special") {
+      const existingBooking = await Booking.findOne({
+        driver: driverId,
+        status: "accepted",
+      });
+
+      if (existingBooking) {
+        return res.status(400).json({ message: "Driver already has an accepted booking" });
+      }
+
+      booking.status = "accepted";
+      booking.driver = driverId;
+      booking.driverLocation = {
+        latitude: latitude,
+        longitude: longitude,
+      };
+      await booking.save();
+
+      // Respond with the accepted booking
+      return res.status(200).json({
+        status: "ok",
+        data: {
+          acceptedBooking: booking,
+        },
+      });
+    }
+
+    res.status(400).json({ message: "Invalid ride type" });
   } catch (error) {
     console.error("Error accepting booking:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 
 router.delete("/delete-all", async (req, res) => {
