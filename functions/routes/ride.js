@@ -17,38 +17,15 @@ router.get("/booking", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 router.get("/available", async (req, res) => {
   try {
-    const { driverId } = req.query;
-    const driver = await Driver.findById(driverId);
-    if (!driver) {
-      return res.status(404).json({ message: "Driver not found" });
-    }
-
-    const vehicleType = driver.vehicleInfo2.vehicleType;
-    const currentBooking = await Booking.findOne({
-      driver: driverId,
-      status: { $in: ["accepted", "rejected"] }
-    }).sort({ updatedAt: -1 });
-
-    let query = {
-      status: "pending",
-      vehicleType: vehicleType
-    };
-
-    if (currentBooking) {
-      query._id = { $ne: currentBooking._id };
-    }
-
-    const newBookings = await Booking.find(query).sort({ createdAt: 1 });
-    res.status(200).json({ status: "ok", data: newBookings });
+    const bookings = await Booking.find({ status: "pending" });
+    res.status(200).json({ status: "ok", data: bookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 
 router.get("/accepted", async (req, res) => {
@@ -92,7 +69,6 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
-
 router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude } = req.body;
@@ -123,29 +99,19 @@ router.post("/accept", async (req, res) => {
     };
     await booking.save();
 
-    // Determine if the accepted booking is a "Shared Ride"
-    let newBooking = null;
-    if (booking.rideType === "Shared Ride") {
-      // Find the next pending booking of the same type and vehicle type
-      newBooking = await Booking.findOne({
-        status: "pending",
-        vehicleType: booking.vehicleType,
-        rideType: "Shared Ride"
-      }).sort({ createdAt: 1 });
-    }
-
-    res.status(200).json({ 
+    // Respond with the accepted booking
+    res.status(200).json({
       status: "ok",
       data: {
         acceptedBooking: booking,
-        newBooking: newBooking ? [newBooking] : []
-      }
+      },
     });
   } catch (error) {
     console.error("Error accepting booking:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 
 router.delete("/delete-all", async (req, res) => {
