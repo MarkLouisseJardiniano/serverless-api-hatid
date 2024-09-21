@@ -6,7 +6,6 @@ const User = require("../schema/auth");
 const Fare = require("../schema/fare")
 const JWT_SECRET = "IWEFHsdfIHCW362weg47HGV3GB4678{]JKAsadFIH";
 const authenticateUser = require("../middleware/verify");
-require('dotenv').config();
 
 // Get all bookings
 router.get("/booking", async (req, res) => {
@@ -21,48 +20,34 @@ router.get("/booking", async (req, res) => {
 
 router.get("/available", async (req, res) => {
   try {
-      const { driverId } = req.query;
-      const driver = await Driver.findById(driverId);
-      if (!driver) {
-          return res.status(404).json({ message: "Driver not found" });
-      }
+    const { driverId } = req.query;
+    const driver = await Driver.findById(driverId);
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
 
-      const vehicleType = driver.vehicleInfo2.vehicleType;
+    const vehicleType = driver.vehicleInfo2.vehicleType;
+    const currentBooking = await Booking.findOne({
+      driver: driverId,
+      status: { $in: ["accepted", "rejected"] }
+    }).sort({ updatedAt: -1 });
 
-      // Assuming driver's location is stored as lat and lng in driver model
-      const { latitude, longitude } = driver.location; // Adjust property names as needed
+    let query = {
+      status: "pending",
+      vehicleType: vehicleType
+    };
 
-      // Reverse geocoding with Mapbox
-      const accessToken = process.env.MAPBOX_ACCESS_TOKEN; // Ensure your access token is set
-      const reverseGeocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${accessToken}`;
-      
-      const geocodeResponse = await axios.get(reverseGeocodeUrl);
-      const address = geocodeResponse.data.features.length > 0
-          ? geocodeResponse.data.features[0].place_name
-          : "Address not found";
+    if (currentBooking) {
+      query._id = { $ne: currentBooking._id };
+    }
 
-      const currentBooking = await Booking.findOne({
-          driver: driverId,
-          status: { $in: ["accepted", "rejected"] }
-      }).sort({ updatedAt: -1 });
-
-      let query = {
-          status: "pending",
-          vehicleType: vehicleType
-      };
-
-      if (currentBooking) {
-          query._id = { $ne: currentBooking._id };
-      }
-
-      const newBookings = await Booking.find(query).sort({ createdAt: 1 });
-      res.status(200).json({ status: "ok", data: newBookings, driverAddress: address });
+    const newBookings = await Booking.find(query).sort({ createdAt: 1 });
+    res.status(200).json({ status: "ok", data: newBookings });
   } catch (error) {
-      console.error("Error fetching bookings:", error);
-      res.status(500).json({ message: "Server Error" });
+    console.error("Error fetching bookings:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 
 
