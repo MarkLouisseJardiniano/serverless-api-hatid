@@ -258,6 +258,19 @@ router.get("/activities/driver/:driverId", async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
+// Get passenger's Expo push token by booking ID
+router.get("/booking/:id/passenger-token", async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+    res.json({ expoPushToken: booking.passengerExpoPushToken }); // Assuming this field exists in your schema
+  } catch (error) {
+    console.error("Error fetching passenger token:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 
 
 module.exports = router;
