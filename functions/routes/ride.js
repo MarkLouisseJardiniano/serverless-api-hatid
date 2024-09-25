@@ -27,32 +27,59 @@ router.get("/available", async (req, res) => {
     }
 
     const vehicleType = driver.vehicleInfo2.vehicleType;
-
-    // Check for accepted shared rides
-    const acceptedSharedRides = await Booking.find({
+    const currentBooking = await Booking.findOne({
       driver: driverId,
-      status: "accepted",
-      rideType: "Share Ride", // Filter for shared rides only
+      status: { $in: ["accepted", "rejected"] }
     }).sort({ updatedAt: -1 });
 
-    // Check for available special rides
-    const availableSpecialRides = await Booking.find({
+    let query = {
       status: "pending",
-      vehicleType: vehicleType,
-      rideType: "special", // Filter for special rides only
-    }).sort({ createdAt: 1 });
+      vehicleType: vehicleType
+    };
 
-    res.status(200).json({
-      status: "ok",
-      acceptedSharedRides,
-      availableSpecialRides,
-    });
+    if (currentBooking) {
+      query._id = { $ne: currentBooking._id };
+    }
+
+    const newBookings = await Booking.find(query).sort({ createdAt: 1 });
+    res.status(200).json({ status: "ok", data: newBookings });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
 
+router.get("/available/shared", async (req, res) => {
+  try {
+    const { driverId } = req.query;
+    const driver = await Driver.findById(driverId);
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    const vehicleType = driver.vehicleInfo2.vehicleType;
+    const currentBooking = await Booking.findOne({
+      driver: driverId,
+      status: { $in: ["accepted", "rejected"] }
+    }).sort({ updatedAt: -1 });
+
+    let query = {
+      status: "pending",
+      vehicleType: vehicleType,
+      rideType: "Shared Ride" // Filter for shared rides
+    };
+
+    if (currentBooking) {
+      query._id = { $ne: currentBooking._id };
+    }
+
+    const sharedRides = await Booking.find(query).sort({ createdAt: 1 });
+    res.status(200).json({ status: "ok", data: sharedRides });
+  } catch (error) {
+    console.error("Error fetching shared rides:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 
 
 
