@@ -27,27 +27,32 @@ router.get("/available", async (req, res) => {
     }
 
     const vehicleType = driver.vehicleInfo2.vehicleType;
-    const currentBooking = await Booking.findOne({
+
+    // Check for accepted shared rides
+    const acceptedSharedRides = await Booking.find({
       driver: driverId,
-      status: { $in: ["accepted", "rejected"] }
+      status: "accepted",
+      rideType: "Share Ride", // Filter for shared rides only
     }).sort({ updatedAt: -1 });
 
-    let query = {
+    // Check for available special rides
+    const availableSpecialRides = await Booking.find({
       status: "pending",
-      vehicleType: vehicleType
-    };
+      vehicleType: vehicleType,
+      rideType: "special", // Filter for special rides only
+    }).sort({ createdAt: 1 });
 
-    if (currentBooking) {
-      query._id = { $ne: currentBooking._id };
-    }
-
-    const newBookings = await Booking.find(query).sort({ createdAt: 1 });
-    res.status(200).json({ status: "ok", data: newBookings });
+    res.status(200).json({
+      status: "ok",
+      acceptedSharedRides,
+      availableSpecialRides,
+    });
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 
 
