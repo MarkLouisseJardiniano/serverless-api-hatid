@@ -62,42 +62,59 @@ router.get("/available/shared", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 router.post("/join", async (req, res) => {
   try {
     const { bookingId, userId } = req.body;
 
-    // Validate input
+    console.log("Request body:", req.body);  // Log the incoming request body
+
+    // Check for missing fields
     if (!bookingId || !userId) {
       return res.status(400).json({ message: "Booking ID and User ID are required" });
     }
 
-    // Check if booking exists
+    // Find the booking by ID
+    console.log("Searching for booking with ID:", bookingId);
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Check if user exists
+    console.log("Booking found:", booking);
+
+    // Check if the user exists
+    console.log("Searching for user with ID:", userId);
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    console.log("User found:", user);
+
     // Check if the ride has been accepted by a driver
+    console.log("Checking booking status:", booking.status);
     if (booking.status !== "accepted") {
       return res.status(400).json({ message: "Ride not yet accepted by a driver" });
     }
 
-    // Add user to the ride as a passenger
+    // Add user to the passengers array
+    console.log("Adding user to passengers:", userId);
     booking.passengers.push(userId);
+    
+    // Save the updated booking
     await booking.save();
 
+    console.log("Booking updated successfully");
     return res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
+    
   } catch (error) {
-    console.error("Error joining the ride:", error);
-    return res.status(500).json({ message: "Server Error" });
+    console.error("Error occurred:", error.message);
+    console.error("Stack Trace:", error.stack);
+    return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
 
 
 router.get("/accepted", async (req, res) => {
