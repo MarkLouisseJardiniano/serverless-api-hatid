@@ -50,21 +50,11 @@ router.get("/available", async (req, res) => {
 });
 router.get("/available/shared", async (req, res) => {
   try {
-    // Get vehicleType from query parameters
-    const { vehicleType } = req.query;
-
-    // Ensure vehicleType is provided
-    if (!vehicleType) {
-      return res.status(400).json({ message: "Vehicle type is required" });
-    }
-
     const query = {
-      status: "accepted",
-      vehicleType: vehicleType,
-      rideType: "Shared Ride" 
+      status: "pending",
+      rideType: "Shared Ride" // Filter for shared rides
     };
 
-    // Fetch shared rides based on the query
     const sharedRides = await Booking.find(query).sort({ createdAt: 1 });
     res.status(200).json({ status: "ok", data: sharedRides });
   } catch (error) {
