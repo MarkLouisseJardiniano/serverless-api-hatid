@@ -65,24 +65,24 @@ router.get("/available/shared", async (req, res) => {
 
 router.post("/join", async (req, res) => {
   try {
-    const { rideId, userId } = req.body;
+    const { bookingId, userId } = req.body; // Changed to bookingId
 
-    if (!rideId || !userId) {
-      return res.status(400).json({ message: "Ride ID and User ID are required" });
+    if (!bookingId || !userId) {
+      return res.status(400).json({ message: "Booking ID and User ID are required" });
     }
 
-    const ride = await Booking.findById(rideId);
-    if (!ride) {
-      return res.status(404).json({ message: "Ride not found" });
+    const booking = await Booking.findById(bookingId); // Changed to bookingId
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Add the user to the ride's participants (or however you are managing joined users)
-    ride.participants.push(userId);
-    await ride.save();
+    // Add the user to the booking's participants
+    booking.participants.push(userId);
+    await booking.save();
 
-    res.status(200).json({ message: "Successfully joined the ride", ride });
+    res.status(200).json({ message: "Successfully joined the booking", booking });
   } catch (error) {
-    console.error("Error joining the ride:", error);
+    console.error("Error joining the booking:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
