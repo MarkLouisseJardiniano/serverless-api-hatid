@@ -63,6 +63,36 @@ router.get("/available/shared", async (req, res) => {
   }
 });
 
+// Join the ride: User joins only if the ride is accepted by a driver
+router.post("/join", async (req, res) => {
+  try {
+    const { bookingId, userId } = req.body;
+
+    if (!bookingId || !userId) {
+      return res.status(400).json({ message: "Booking ID and User ID are required" });
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Check if the ride is already accepted by a driver
+    if (booking.status !== "accepted") {
+      return res.status(400).json({ message: "Ride not yet accepted by a driver" });
+    }
+
+    // Once the ride is accepted, allow the user to join
+    booking.passengers.push(userId); // Assuming `passengers` is an array in your Booking schema
+    await booking.save();
+
+    res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
+  } catch (error) {
+    console.error("Error joining the ride:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 
 
 
@@ -112,12 +142,14 @@ router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude } = req.body;
 
+    // Validate required fields
     if (!bookingId || !driverId || latitude == null || longitude == null) {
       return res
         .status(400)
         .json({ message: "Booking ID, Driver ID, and driver location are required" });
     }
 
+    // Find the booking and check if it's still pending
     const booking = await Booking.findById(bookingId);
     if (!booking || booking.status !== "pending") {
       return res.status(400).json({ message: "Booking not available or not pending" });
@@ -129,7 +161,7 @@ router.post("/accept", async (req, res) => {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // Accept the booking
+    // Accept the booking by updating status and driver info
     booking.status = "accepted";
     booking.driver = driverId;
     booking.driverLocation = {
@@ -138,29 +170,30 @@ router.post("/accept", async (req, res) => {
     };
     await booking.save();
 
-    // Determine if the accepted booking is a "Shared Ride"
+    // Check if it's a shared ride
     let newBooking = null;
     if (booking.rideType === "Shared Ride") {
-      // Find the next pending booking of the same type and vehicle type
       newBooking = await Booking.findOne({
         status: "pending",
-        vehicleType: booking.vehicleType,
-        rideType: "Shared Ride"
-      }).sort({ createdAt: 1 });
+        vehicleType: booking.vehicleType, // Ensure vehicle type matches
+        rideType: "Shared Ride",
+      }).sort({ createdAt: 1 }); // Get the earliest pending shared ride
     }
 
-    res.status(200).json({ 
+    // Respond with accepted booking and any new shared booking
+    res.status(200).json({
       status: "ok",
       data: {
         acceptedBooking: booking,
-        newBooking: newBooking ? [newBooking] : []
-      }
+        newBooking: newBooking ? [newBooking] : [],
+      },
     });
   } catch (error) {
     console.error("Error accepting booking:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 
 router.delete("/delete-all", async (req, res) => {
