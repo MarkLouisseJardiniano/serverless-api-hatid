@@ -50,18 +50,21 @@ router.get("/available", async (req, res) => {
 });
 router.get("/available/shared", async (req, res) => {
   try {
-    const { driverId } = req.query;
-    const driver = await Driver.findById(driverId);
-    if (!driver) {
-      return res.status(404).json({ message: "Driver not found" });
+    // Get vehicleType from query parameters
+    const { vehicleType } = req.query;
+
+    // Ensure vehicleType is provided
+    if (!vehicleType) {
+      return res.status(400).json({ message: "Vehicle type is required" });
     }
-    const vehicleType = driver.vehicleInfo2.vehicleType;
+
     const query = {
       status: "pending",
       vehicleType: vehicleType,
       rideType: "Shared Ride" 
     };
 
+    // Fetch shared rides based on the query
     const sharedRides = await Booking.find(query).sort({ createdAt: 1 });
     res.status(200).json({ status: "ok", data: sharedRides });
   } catch (error) {
@@ -69,6 +72,7 @@ router.get("/available/shared", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 
 
