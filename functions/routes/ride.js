@@ -59,7 +59,7 @@ router.get("/available/shared", async (req, res) => {
     }
 
     const query = {
-      status: "pending",
+      status: "accepted",
       vehicleType: vehicleType,
       rideType: "Shared Ride" 
     };
