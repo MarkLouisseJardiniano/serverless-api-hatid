@@ -62,38 +62,42 @@ router.get("/available/shared", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
-// Join the ride: User joins only if the ride is accepted by a driver
 router.post("/join", async (req, res) => {
   try {
     const { bookingId, userId } = req.body;
 
+    // Validate input
     if (!bookingId || !userId) {
       return res.status(400).json({ message: "Booking ID and User ID are required" });
     }
 
+    // Check if booking exists
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Check if the ride is already accepted by a driver
+    // Check if user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the ride has been accepted by a driver
     if (booking.status !== "accepted") {
       return res.status(400).json({ message: "Ride not yet accepted by a driver" });
     }
 
-    // Once the ride is accepted, allow the user to join
-    booking.passengers.push(userId); // Assuming `passengers` is an array in your Booking schema
+    // Add user to the ride as a passenger
+    booking.passengers.push(userId);
     await booking.save();
 
-    res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
+    return res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
   } catch (error) {
     console.error("Error joining the ride:", error);
-    res.status(500).json({ message: "Server Error" });
+    return res.status(500).json({ message: "Server Error" });
   }
 });
-
-
 
 
 router.get("/accepted", async (req, res) => {
