@@ -63,30 +63,24 @@ router.get("/available/shared", async (req, res) => {
   }
 });
 
-// Join the ride: User joins only if the ride is accepted by a driver
 router.post("/join", async (req, res) => {
   try {
-    const { bookingId, userId } = req.body;
+    const { rideId, userId } = req.body;
 
-    if (!bookingId || !userId) {
-      return res.status(400).json({ message: "Booking ID and User ID are required" });
+    if (!rideId || !userId) {
+      return res.status(400).json({ message: "Ride ID and User ID are required" });
     }
 
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+    const ride = await Booking.findById(rideId);
+    if (!ride) {
+      return res.status(404).json({ message: "Ride not found" });
     }
 
-    // Check if the ride is already accepted by a driver
-    if (booking.status !== "accepted") {
-      return res.status(400).json({ message: "Ride not yet accepted by a driver" });
-    }
+    // Add the user to the ride's participants (or however you are managing joined users)
+    ride.participants.push(userId);
+    await ride.save();
 
-    // Once the ride is accepted, allow the user to join
-    booking.passengers.push(userId); // Assuming `passengers` is an array in your Booking schema
-    await booking.save();
-
-    res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
+    res.status(200).json({ message: "Successfully joined the ride", ride });
   } catch (error) {
     console.error("Error joining the ride:", error);
     res.status(500).json({ message: "Server Error" });
