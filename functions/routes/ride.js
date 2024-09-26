@@ -83,10 +83,6 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (booking.status !== "accepted") {
-      return res.status(400).json({ message: "Ride not yet accepted by a driver" });
-    }
-
     booking.copassengers.push(userId);
     
     booking.status = "pending"; 
