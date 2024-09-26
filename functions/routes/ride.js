@@ -100,7 +100,7 @@ router.post("/join", async (req, res) => {
 
     // Add user to the passengers array
     console.log("Adding user to passengers:", userId);
-    booking.passengers.push(userId);
+    booking.copassengers.push(userId);
     
     // Save the updated booking
     await booking.save();
