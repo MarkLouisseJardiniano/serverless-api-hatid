@@ -83,25 +83,35 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Access pickupLocation and destinationLocation from passengerLocation
+    const { pickupLocation, destinationLocation } = passengerLocation;
+
     booking.copassengers.push({
       user: userId,
-      pickupLocation,
-      destinationLocation,
-      vehicleType,
-      rideType,
-      fare,
+      location: { // Store pickupLocation and destinationLocation in a 'location' field
+        pickupLocation: {
+          latitude: pickupLocation.latitude,
+          longitude: pickupLocation.longitude,
+        },
+        destinationLocation: {
+          latitude: destinationLocation.latitude,
+          longitude: destinationLocation.longitude,
+        },
+      },
+      fare, // Pass fare directly
       status: "pending",
     });
 
     await booking.save();
 
     return res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
-    
+
   } catch (error) {
     console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
 
 
 
