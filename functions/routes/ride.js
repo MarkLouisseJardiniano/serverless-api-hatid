@@ -62,19 +62,15 @@ router.get("/available/shared", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 router.post("/join", async (req, res) => {
   try {
-    const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body;
+    const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body; // Include passengerLocation and fare
 
-    console.log("Request body:", req.body); // Log the full request body
+    console.log("Request body:", req.body);
 
-    if (!bookingId || !userId || !passengerLocation || !vehicleType || !rideType || fare == null) {
-      return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, Vehicle Type, Ride Type, and Fare are required" });
-    }
-
-    // Validate passengerLocation structure
-    if (!passengerLocation.pickupLocation || !passengerLocation.destinationLocation) {
-      return res.status(400).json({ message: "Passenger location must include both pickup and destination locations" });
+    if (!bookingId || !userId || !passengerLocation ||!vehicleType || !rideType || fare == null) {
+      return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, and Fare are required" });
     }
 
     const booking = await Booking.findById(bookingId);
@@ -87,6 +83,7 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Access pickupLocation and destinationLocation from passengerLocation
     const { pickupLocation, destinationLocation } = passengerLocation;
 
     booking.copassengers.push({
@@ -101,17 +98,18 @@ router.post("/join", async (req, res) => {
           longitude: destinationLocation.longitude,
         },
       },
+      vehicleType,
+      rideType,
       fare, // Pass fare directly
       status: "pending",
-      vehicleType: vehicleType, // Set vehicle type from request
-      rideType: rideType, // Set ride type from request
     });
 
     await booking.save();
 
     return res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
+
   } catch (error) {
-    console.error("Error occurred:", error); // Log the entire error object
+    console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
