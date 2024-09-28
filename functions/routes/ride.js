@@ -62,6 +62,7 @@ router.get("/available/shared", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 router.post("/join", async (req, res) => {
   try {
     const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body;
@@ -98,7 +99,7 @@ router.post("/join", async (req, res) => {
       },
       vehicleType,
       rideType,
-      fare, // Pass fare directly
+      fare,
       status: "pending",
     });
 
@@ -106,10 +107,11 @@ router.post("/join", async (req, res) => {
 
     return res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
   } catch (error) {
-    console.error("Error occurred:", error.message);
+    console.error("Error occurred:", error); // Log the entire error object
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
 
 
 
