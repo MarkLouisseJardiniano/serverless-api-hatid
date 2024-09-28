@@ -65,11 +65,11 @@ router.get("/available/shared", async (req, res) => {
 
 router.post("/join", async (req, res) => {
   try {
-    const { bookingId, userId, passengerLocation, fare } = req.body; // Include passengerLocation and fare
+    const { bookingId, userId, passengerLocation, rideType, fare } = req.body; // Include passengerLocation and fare
 
     console.log("Request body:", req.body);
 
-    if (!bookingId || !userId || !passengerLocation || fare == null) {
+    if (!bookingId || !userId || !passengerLocation || !rideType || fare == null) {
       return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, and Fare are required" });
     }
 
@@ -88,7 +88,7 @@ router.post("/join", async (req, res) => {
 
     booking.copassengers.push({
       user: userId,
-      location: { // Store pickupLocation and destinationLocation in a 'location' field
+      location: {
         pickupLocation: {
           latitude: pickupLocation.latitude,
           longitude: pickupLocation.longitude,
@@ -98,6 +98,7 @@ router.post("/join", async (req, res) => {
           longitude: destinationLocation.longitude,
         },
       },
+      rideType,
       fare, // Pass fare directly
       status: "pending",
     });
