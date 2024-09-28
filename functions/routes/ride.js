@@ -83,19 +83,15 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Add the user and their location to copassengers
     booking.copassengers.push({
       user: userId,
-      location: {
-        pickupLocation: passengerLocation.pickupLocation, // Use the nested structure
-        destinationLocation: passengerLocation.destinationLocation,
-      },
-      fare: fare, // Add fare to copassengers
-      status: "pending", // Set initial status for the copassenger
+      pickupLocation,
+      destinationLocation,
+      vehicleType,
+      rideType,
+      fare,
+      status: "pending",
     });
-
-    booking.rideType = "Shared Ride"; // Optional if you want to set it explicitly
-    booking.status = "pending"; // Optional if you want to keep the overall booking status
 
     await booking.save();
 
