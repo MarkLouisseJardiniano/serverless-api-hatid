@@ -62,15 +62,19 @@ router.get("/available/shared", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 router.post("/join", async (req, res) => {
   try {
     const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body;
 
-    console.log("Request body:", req.body);
+    console.log("Request body:", req.body); // Log the full request body
 
     if (!bookingId || !userId || !passengerLocation || !vehicleType || !rideType || fare == null) {
       return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, Vehicle Type, Ride Type, and Fare are required" });
+    }
+
+    // Validate passengerLocation structure
+    if (!passengerLocation.pickupLocation || !passengerLocation.destinationLocation) {
+      return res.status(400).json({ message: "Passenger location must include both pickup and destination locations" });
     }
 
     const booking = await Booking.findById(bookingId);
@@ -111,8 +115,6 @@ router.post("/join", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
-
 
 
 
