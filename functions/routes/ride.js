@@ -99,7 +99,7 @@ router.post("/join", async (req, res) => {
       },
       vehicleType,
       rideType,
-      fare,
+      fare, // Pass fare directly
       status: "pending",
     });
 
