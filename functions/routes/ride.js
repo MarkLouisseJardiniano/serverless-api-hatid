@@ -65,12 +65,12 @@ router.get("/available/shared", async (req, res) => {
 
 router.post("/join", async (req, res) => {
   try {
-    const { bookingId, userId } = req.body;
+    const { bookingId, userId, passengerLocation, fare } = req.body; // Include passengerLocation and fare
 
     console.log("Request body:", req.body);
 
-    if (!bookingId || !userId) {
-      return res.status(400).json({ message: "Booking ID and User ID are required" });
+    if (!bookingId || !userId || !passengerLocation || fare == null) {
+      return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, and Fare are required" });
     }
 
     const booking = await Booking.findById(bookingId);
@@ -83,10 +83,20 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    booking.copassengers.push(userId);
-    booking.passengerLocation = passengerLocation;
-    booking.rideType = "Shared Ride"
-    booking.status = "pending"; 
+    // Add the user and their location to copassengers
+    booking.copassengers.push({
+      user: userId,
+      location: {
+        pickupLocation: passengerLocation.pickupLocation, // Use the nested structure
+        destinationLocation: passengerLocation.destinationLocation,
+      },
+      fare: fare, // Add fare to copassengers
+      status: "pending", // Set initial status for the copassenger
+    });
+
+    booking.rideType = "Shared Ride"; // Optional if you want to set it explicitly
+    booking.status = "pending"; // Optional if you want to keep the overall booking status
+
     await booking.save();
 
     return res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
@@ -96,7 +106,6 @@ router.post("/join", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
 
 
 
