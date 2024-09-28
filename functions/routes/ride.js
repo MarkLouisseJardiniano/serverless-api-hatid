@@ -84,7 +84,7 @@ router.post("/join", async (req, res) => {
     }
 
     booking.copassengers.push(userId);
-    
+    booking.rideType = "Shared Ride"
     booking.status = "pending"; 
     await booking.save();
 
