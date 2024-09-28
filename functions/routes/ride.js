@@ -98,6 +98,7 @@ router.post("/join", async (req, res) => {
           longitude: destinationLocation.longitude,
         },
       },
+      vehicleType,
       rideType,
       fare, // Pass fare directly
       status: "pending",
