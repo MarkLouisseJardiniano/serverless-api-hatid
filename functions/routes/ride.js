@@ -65,11 +65,11 @@ router.get("/available/shared", async (req, res) => {
 
 router.post("/join", async (req, res) => {
   try {
-    const { bookingId, userId, passengerLocation, rideType, fare } = req.body; // Include passengerLocation and fare
+    const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body; // Include passengerLocation and fare
 
     console.log("Request body:", req.body);
 
-    if (!bookingId || !userId || !passengerLocation || !rideType || fare == null) {
+    if (!bookingId || !userId || !passengerLocation ||!vehicleType || !rideType || fare == null) {
       return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, and Fare are required" });
     }
 
