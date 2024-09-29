@@ -62,15 +62,14 @@ router.get("/available/shared", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 router.post("/join", async (req, res) => {
   try {
-    const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body; // Include passengerLocation and fare
+    const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body;
 
     console.log("Request body:", req.body);
 
-    if (!bookingId || !userId || !passengerLocation ||!vehicleType || !rideType || fare == null) {
-      return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, and Fare are required" });
+    if (!bookingId || !userId || !passengerLocation || !vehicleType || !rideType || fare == null) {
+      return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, Vehicle Type, Ride Type, and Fare are required" });
     }
 
     const booking = await Booking.findById(bookingId);
@@ -83,7 +82,6 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Access pickupLocation and destinationLocation from passengerLocation
     const { pickupLocation, destinationLocation } = passengerLocation;
 
     booking.copassengers.push({
@@ -107,14 +105,11 @@ router.post("/join", async (req, res) => {
     await booking.save();
 
     return res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
-
   } catch (error) {
     console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
-});
-
-
+}); 
 
 
 router.get("/accepted", async (req, res) => {
