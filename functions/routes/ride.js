@@ -91,17 +91,10 @@ router.post("/join", async (req, res) => {
 
     // Create a new booking object
     const newBooking = new Booking({
+      name: user.name,
       user: userId,
-      location: {
-        pickupLocation: {
-          latitude: pickupLocation.latitude,
-          longitude: pickupLocation.longitude,
-        },
-        destinationLocation: {
-          latitude: destinationLocation.latitude,
-          longitude: destinationLocation.longitude,
-        },
-      },
+      pickupLocation,
+      destinationLocation,
       vehicleType,
       rideType,
       fare,
