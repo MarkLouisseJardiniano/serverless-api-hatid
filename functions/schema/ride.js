@@ -3,40 +3,6 @@ const mongoose = require("mongoose");
 const bookingSchema = new mongoose.Schema({
   name: { type: String, required: true },
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  copassengers: [
-    {
-      user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-      location: {
-        pickupLocation: {
-          latitude: { type: Number, required: true },
-          longitude: { type: Number, required: true },
-        },
-        destinationLocation: {
-          latitude: { type: Number, required: true },
-          longitude: { type: Number, required: true },
-        },
-      },
-      fare: {
-        type: Number,
-        required: true,
-      },
-      vehicleType: { // Include vehicle type
-        type: String,
-        enum: ["Tricycle", "Jeep"], // Adjust according to your options
-        required: true,
-      },
-      rideType: { // Include ride type
-        type: String,
-        enum: ["Special", "Shared Ride"], // Adjust according to your options
-        required: true,
-      },
-      status: {
-        type: String,
-        enum: ["pending", "accepted", "completed", "canceled"],
-        default: "pending",
-      },
-    },
-  ],
   driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
   pickupLocation: {
     latitude: { type: Number, required: true },

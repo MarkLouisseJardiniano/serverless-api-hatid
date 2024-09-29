@@ -62,19 +62,21 @@ router.get("/available/shared", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-// Endpoint for passengers to join a ride
+
 router.post("/join", async (req, res) => {
-  const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body;
-
-  // Validate input fields
-  if (!bookingId || !userId || !passengerLocation || !vehicleType || !rideType || fare == null) {
-    return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, Vehicle Type, Ride Type, and Fare are required" });
-  }
-
   try {
-    // Find the booking to join
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
+    const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body;
+
+    console.log("Request body:", req.body);
+
+    // Validate required fields
+    if (!bookingId || !userId || !passengerLocation || !vehicleType || !rideType || fare == null) {
+      return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, Vehicle Type, Ride Type, and Fare are required" });
+    }
+
+    // Find the existing booking
+    const existingBooking = await Booking.findById(bookingId);
+    if (!existingBooking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
@@ -84,37 +86,38 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Get passenger location details
+    // Destructure passengerLocation
     const { pickupLocation, destinationLocation } = passengerLocation;
 
-    // Create a new copassenger entry
-    const copassengerBooking = new Booking({
-      name: user.name,
+    // Create a new booking object
+    const newBooking = new Booking({
       user: userId,
-      pickupLocation: {
-        latitude: pickupLocation.latitude,
-        longitude: pickupLocation.longitude,
-      },
-      destinationLocation: {
-        latitude: destinationLocation.latitude,
-        longitude: destinationLocation.longitude,
+      location: {
+        pickupLocation: {
+          latitude: pickupLocation.latitude,
+          longitude: pickupLocation.longitude,
+        },
+        destinationLocation: {
+          latitude: destinationLocation.latitude,
+          longitude: destinationLocation.longitude,
+        },
       },
       vehicleType,
       rideType,
       fare,
-      status: "pending", // Set status to pending
+      status: "pending",
     });
 
-    // Save the new copassenger booking
-    await copassengerBooking.save();
+    // Save the new booking
+    await newBooking.save();
 
-    return res.status(200).json({ status: "pending", message: "Join request is pending driver approval", copassengerBooking });
+    return res.status(200).json({ status: "ok", message: "Successfully joined the ride", joinBooking: newBooking });
+
   } catch (error) {
     console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
 
 
 router.get("/accepted", async (req, res) => {
@@ -158,6 +161,7 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
+
 router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude } = req.body;
@@ -190,39 +194,22 @@ router.post("/accept", async (req, res) => {
     };
     await booking.save();
 
-    // Check if it's a shared ride and handle copassenger logic
+    // Check if it's a shared ride
     let newBooking = null;
     if (booking.rideType === "Shared Ride") {
-      // Fetch any copassengers that joined the shared ride
-      const copassengers = await Booking.find({
+      newBooking = await Booking.findOne({
         status: "pending",
-        rideType: "Shared Ride",
         vehicleType: booking.vehicleType, // Ensure vehicle type matches
-      });
-
-      // If there are copassengers, we can push their details to the accepted booking
-      if (copassengers.length > 0) {
-        for (const copassenger of copassengers) {
-          booking.copassengers.push({
-            user: copassenger.user,
-            fare: copassenger.fare,
-            status: "pending",
-            pickupLocation: copassenger.pickupLocation,
-            destinationLocation: copassenger.destinationLocation,
-          });
-          // Update the copassenger booking status to accepted
-          copassenger.status = "accepted";
-          await copassenger.save();
-        }
-      }
+        rideType: "Shared Ride",
+      }).sort({ createdAt: 1 }); // Get the earliest pending shared ride
     }
 
-    // Respond with accepted booking and any new shared bookings
+    // Respond with accepted booking and any new shared booking
     res.status(200).json({
       status: "ok",
       data: {
         acceptedBooking: booking,
-        newBookings: copassengers || [],
+        newBooking: newBooking ? [newBooking] : [],
       },
     });
   } catch (error) {
