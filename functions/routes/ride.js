@@ -98,11 +98,11 @@ router.post("/join", async (req, res) => {
       },
       vehicleType,
       rideType,
-      fare, // Pass fare directly
+      fare,
       status: "pending",
     });
 
-    await booking.save();
+    await newBooking.save();
 
     return res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
   } catch (error) {
