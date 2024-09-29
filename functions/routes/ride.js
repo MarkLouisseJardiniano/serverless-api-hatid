@@ -72,8 +72,8 @@ router.post("/join", async (req, res) => {
       return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, Vehicle Type, Ride Type, and Fare are required" });
     }
 
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
+    const newBooking = await Booking.findById(bookingId);
+    if (!newBooking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
@@ -84,7 +84,7 @@ router.post("/join", async (req, res) => {
 
     const { pickupLocation, destinationLocation } = passengerLocation;
 
-    booking.copassengers.push({
+    newBooking.copassengers.push({
       user: userId,
       location: {
         pickupLocation: {
@@ -104,7 +104,7 @@ router.post("/join", async (req, res) => {
 
     await newBooking.save();
 
-    return res.status(200).json({ status: "ok", message: "Successfully joined the ride", booking });
+    return res.status(200).json({ status: "ok", message: "Successfully joined the ride", newBooking });
   } catch (error) {
     console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
