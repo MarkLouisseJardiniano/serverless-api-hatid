@@ -164,16 +164,13 @@ router.post("/create", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
-
 router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude } = req.body;
 
     // Validate required fields
     if (!bookingId || !driverId || latitude == null || longitude == null) {
-      return res
-        .status(400)
-        .json({ message: "Booking ID, Driver ID, and driver location are required" });
+      return res.status(400).json({ message: "Booking ID, Driver ID, and driver location are required" });
     }
 
     // Find the booking and check if it's still pending
@@ -191,28 +188,29 @@ router.post("/accept", async (req, res) => {
     // Accept the booking by updating status and driver info
     booking.status = "accepted";
     booking.driver = driverId;
-    booking.driverLocation = {
-      latitude: latitude,
-      longitude: longitude,
-    };
+    booking.driverLocation = { latitude, longitude };
+    
     await booking.save();
 
-    // Check if it's a shared ride
-    let newBooking = null;
+    // Handle copassenger requests if it's a shared ride
     if (booking.rideType === "Shared Ride") {
-      newBooking = await Booking.findOne({
-        status: "pending",
-        vehicleType: booking.vehicleType, // Ensure vehicle type matches
-        rideType: "Shared Ride",
-      }).sort({ createdAt: 1 }); // Get the earliest pending shared ride
+      // Update all pending copassengers to accepted
+      for (let i = 0; i < booking.copassengers.length; i++) {
+        const copassenger = booking.copassengers[i];
+        if (copassenger.status === "pending") {
+          copassenger.status = "accepted"; // Update status to accepted
+          await copassenger.save(); // Save copassenger's new status
+        }
+      }
     }
 
-    // Respond with accepted booking and any new shared booking
+    // Respond with the accepted booking
     res.status(200).json({
       status: "ok",
       data: {
         acceptedBooking: booking,
-        newBooking: newBooking ? [newBooking] : [],
+        // You might want to return accepted copassengers as well
+        acceptedCopassengers: booking.copassengers.filter(c => c.status === "accepted"),
       },
     });
   } catch (error) {
