@@ -187,10 +187,15 @@ router.post("/accept", async (req, res) => {
       longitude: longitude,
     };
 
+    // Ensure copassengers array exists
+    if (!booking.copassengers) {
+      booking.copassengers = [];
+    }
+
     // Check if it's a shared ride
     let newBooking = null;
     if (booking.rideType === "Shared Ride") {
-      // Find copassengers who requested to join the ride
+      // Find co-passengers who requested to join the ride
       const pendingCopassengers = await Booking.find({
         status: "pending",
         vehicleType: booking.vehicleType, // Ensure vehicle type matches
@@ -198,9 +203,12 @@ router.post("/accept", async (req, res) => {
         _id: { $ne: bookingId }, // Exclude the current booking
       }).sort({ createdAt: 1 }); // Get the earliest pending shared ride requests
 
+      // Log the number of pending co-passengers found
+      console.log("Pending Co-Passengers:", pendingCopassengers);
+
       // Push each copassenger to the copassengers array
-      pendingCopassengers.forEach(copassenger => {
-        booking.copassengers.push({
+      const newCopassengers = pendingCopassengers.map(copassenger => {
+        return {
           userId: copassenger.user,
           name: copassenger.name,
           pickupLocation: copassenger.pickupLocation,
@@ -209,23 +217,28 @@ router.post("/accept", async (req, res) => {
           vehicleType: copassenger.vehicleType,
           rideType: copassenger.rideType,
           status: "accepted", // Update the status to accepted for the copassenger
-        });
+        };
       });
 
+      // Push the new copassengers to the booking's copassengers array
+      booking.copassengers.push(...newCopassengers);
+
       // Mark the join requests as accepted
-      for (const copassenger of pendingCopassengers) {
-        copassenger.status = "accepted";
-        await copassenger.save();
-      }
+      await Promise.all(
+        pendingCopassengers.map(async copassenger => {
+          copassenger.status = "accepted";
+          await copassenger.save();
+        })
+      );
 
       // Return the newly accepted copassenger booking
       newBooking = pendingCopassengers.length > 0 ? pendingCopassengers : null;
     }
 
-    // Save the updated booking with copassengers
+    // Save the updated booking with co-passengers
     await booking.save();
 
-    // Respond with the updated booking and any new copassenger join requests
+    // Respond with the updated booking and any new co-passenger join requests
     res.status(200).json({
       status: "ok",
       data: {
