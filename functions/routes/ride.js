@@ -47,19 +47,30 @@ router.get("/available", async (req, res) => {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
   }
-});
-router.get("/available/shared", async (req, res) => {
+});router.get("/available/shared", async (req, res) => {
   try {
+    // Define the query to find accepted shared rides
     const query = {
       status: "accepted",
-      rideType: "Shared Ride" 
+      rideType: "Shared Ride"
     };
 
+    // Fetch the shared rides from the database
     const sharedRides = await Booking.find(query).sort({ createdAt: 1 });
+
+    // If no rides are found, return an empty array with a success status
+    if (sharedRides.length === 0) {
+      return res.status(200).json({ status: "ok", data: [] });
+    }
+
+    // Respond with the found rides
     res.status(200).json({ status: "ok", data: sharedRides });
   } catch (error) {
+    // Log the error for debugging purposes
     console.error("Error fetching shared rides:", error);
-    res.status(500).json({ message: "Server Error" });
+
+    // Respond with a 500 error if something goes wrong
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
