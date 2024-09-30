@@ -82,7 +82,12 @@ router.post("/join", async (req, res) => {
 
     const { pickupLocation, destinationLocation } = passengerLocation;
 
-    // Create a new booking for the passenger with "pending" status
+    // Validate locations
+    if (!pickupLocation || !destinationLocation) {
+      return res.status(400).json({ message: "Pickup and destination locations are required" });
+    }
+
+    // Create new booking entry
     const newBooking = new Booking({
       user: userId,
       name: user.name,
@@ -91,21 +96,22 @@ router.post("/join", async (req, res) => {
       vehicleType,
       rideType,
       fare,
-      status: "pending", // Initially set status to pending
+      status: "pending", 
     });
 
     await newBooking.save();
 
     return res.status(201).json({
       status: "ok",
-      message: "Booking created, waiting for driver acceptance",
+      message: "Successfully joined the ride, waiting for driver acceptance",
       booking: newBooking,
     });
   } catch (error) {
     console.error("Error occurred:", error.message);
-    return res.status(500).json({ message: "Server Error", error: error.message });
+    return res.status(500).json({ message: "Server Error: An error occurred while processing your request.", error: error.message });
   }
 });
+
 
 
 
