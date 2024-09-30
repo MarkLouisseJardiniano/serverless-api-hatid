@@ -80,6 +80,15 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
+    // Ensure the booking is accepted and a shared ride
+    if (existingBooking.status !== "accepted") {
+      return res.status(400).json({ message: "You can only join an accepted ride" });
+    }
+
+    if (existingBooking.rideType !== "Shared Ride") {
+      return res.status(400).json({ message: "You can only join a shared ride" });
+    }
+
     // Find the user (co-passenger)
     const user = await User.findById(userId);
     if (!user) {
@@ -93,7 +102,6 @@ router.post("/join", async (req, res) => {
     if (existingBooking.vehicleType !== vehicleType) {
       return res.status(400).json({ message: "Vehicle type does not match the booking" });
     }
-
 
     // Add the co-passenger details to the booking
     existingBooking.copassengers.push({
@@ -117,7 +125,6 @@ router.post("/join", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
 
 
 router.get("/accepted", async (req, res) => {
