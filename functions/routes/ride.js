@@ -187,7 +187,6 @@ router.post("/join", async (req, res) => {
   }
 });
 
-
 // Accept Endpoint
 router.post("/accept", async (req, res) => {
   try {
@@ -207,7 +206,7 @@ router.post("/accept", async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Check if the booking status is pending
+    // Check if the booking status is pending (before being accepted)
     if (booking.status !== "pending") {
       return res.status(400).json({ message: "Booking not available or not pending" });
     }
@@ -219,7 +218,7 @@ router.post("/accept", async (req, res) => {
     }
 
     // Check if the user accepting is a copassenger
-    const copassenger = booking.copassengers.find(c => c.userId.toString() === userId);
+    const copassenger = booking.copassengers.find(c => c.user._id.toString() === userId);
     if (!copassenger) {
       return res.status(404).json({ message: "User not found among copassengers" });
     }
@@ -227,9 +226,9 @@ router.post("/accept", async (req, res) => {
     // Update the copassenger status to accepted
     copassenger.status = "accepted";
 
-    // If this is the primary user, update booking status and driver information
+    // If this is the primary user, update the overall booking status and driver information
     if (userId.toString() === booking.user.toString()) {
-      booking.status = "accepted"; // Only update if the primary user is accepting
+      booking.status = "accepted"; // Only update booking status if the primary user is accepting
       booking.driver = driverId;
       booking.driverLocation = { latitude, longitude };
     }
@@ -237,12 +236,12 @@ router.post("/accept", async (req, res) => {
     // Save the updated booking
     await booking.save();
 
-    // Respond with the accepted booking and copassenger
+    // Respond with the accepted booking and copassenger details
     res.status(200).json({
       status: "ok",
       data: {
         acceptedBooking: booking,
-        acceptedCopassenger: copassenger, // Include the accepted copassenger
+        acceptedCopassenger: copassenger, // Include the accepted copassenger details
       },
     });
   } catch (error) {
@@ -250,7 +249,6 @@ router.post("/accept", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 
 router.delete("/delete-all", async (req, res) => {
