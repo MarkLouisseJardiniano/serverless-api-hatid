@@ -192,12 +192,16 @@ router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude, userId } = req.body; // Expect userId from the copassenger
 
-    // Log incoming request data
-    console.log("Request body:", req.body);
+    console.log("Request body:", req.body); // Log request data
 
     // Validate required fields
     if (!bookingId || !driverId || latitude == null || longitude == null || !userId) {
       return res.status(400).json({ message: "Booking ID, Driver ID, driver location, and user ID are required" });
+    }
+
+    // Validate IDs
+    if (!mongoose.Types.ObjectId.isValid(bookingId) || !mongoose.Types.ObjectId.isValid(driverId) || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid IDs provided" });
     }
 
     // Find the booking and populate copassengers
@@ -205,8 +209,9 @@ router.post("/accept", async (req, res) => {
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
+    console.log("Booking found:", booking);
 
-    // Check if the booking status is pending (before being accepted)
+    // Check if the booking status is pending
     if (booking.status !== "pending") {
       return res.status(400).json({ message: "Booking not available or not pending" });
     }
@@ -216,19 +221,21 @@ router.post("/accept", async (req, res) => {
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
+    console.log("Driver found:", driver);
 
     // Check if the user accepting is a copassenger
     const copassenger = booking.copassengers.find(c => c.user._id.toString() === userId);
     if (!copassenger) {
       return res.status(404).json({ message: "User not found among copassengers" });
     }
+    console.log("Copassenger found:", copassenger);
 
     // Update the copassenger status to accepted
     copassenger.status = "accepted";
 
     // If this is the primary user, update the overall booking status and driver information
     if (userId.toString() === booking.user.toString()) {
-      booking.status = "accepted"; // Only update booking status if the primary user is accepting
+      booking.status = "accepted"; // Only update if the primary user is accepting
       booking.driver = driverId;
       booking.driverLocation = { latitude, longitude };
     }
@@ -241,14 +248,15 @@ router.post("/accept", async (req, res) => {
       status: "ok",
       data: {
         acceptedBooking: booking,
-        acceptedCopassenger: copassenger, // Include the accepted copassenger details
+        acceptedCopassenger: copassenger,
       },
     });
   } catch (error) {
     console.error("Error accepting booking:", error);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
 
 
 router.delete("/delete-all", async (req, res) => {
