@@ -190,7 +190,7 @@ router.post("/accept", async (req, res) => {
     }
 
     // Find the booking and check if it's still pending
-    const booking = await Booking.findById(bookingId).populate('copassengers.user');
+    const booking = await Booking.findById(bookingId).populate('copassengers.userId');
     if (!booking || booking.status !== "pending") {
       return res.status(400).json({ message: "Booking not available or not pending" });
     }
