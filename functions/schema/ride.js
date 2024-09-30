@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // The main user who created the booking
   driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
   pickupLocation: {
     latitude: { type: Number, required: true },
@@ -16,20 +16,45 @@ const bookingSchema = new mongoose.Schema({
     latitude: { type: Number },
     longitude: { type: Number },
   },
-  vehicleType: { 
-    type: String, 
-    enum: ["Tricycle", "Jeep"], 
-    required: true 
+  vehicleType: {
+    type: String,
+    enum: ["Tricycle", "Jeep"],
+    required: true,
   },
-  rideType: { 
-    type: String, 
-    enum: ["Special", "Shared Ride"], 
-    required: true 
+  rideType: {
+    type: String,
+    enum: ["Special", "Shared Ride"],
+    required: true,
   },
   fare: {
     type: Number,
     required: true,
   },
+  copassengers: [
+    {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      name: { type: String, required: true },
+      pickupLocation: {
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true },
+      },
+      destinationLocation: {
+        latitude: { type: Number, required: true },
+        longitude: { type: Number, required: true },
+      },
+      fare: { type: Number, required: true },
+      rideType: {
+        type: String,
+        enum: ["Special", "Shared Ride"],
+        required: true,
+      },
+      status: {
+        type: String,
+        enum: ["pending", "accepted", "completed", "canceled"],
+        default: "pending",
+      },
+    },
+  ],
   status: {
     type: String,
     enum: ["pending", "accepted", "completed", "canceled"],

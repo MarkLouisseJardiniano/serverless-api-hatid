@@ -80,7 +80,7 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Find the user
+    // Find the user (co-passenger)
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -89,28 +89,35 @@ router.post("/join", async (req, res) => {
     // Destructure passengerLocation
     const { pickupLocation, destinationLocation } = passengerLocation;
 
-    // Create a new booking object
-    const newBooking = new Booking({
+    // Check if the vehicle type matches the existing booking
+    if (existingBooking.vehicleType !== vehicleType) {
+      return res.status(400).json({ message: "Vehicle type does not match the booking" });
+    }
+
+
+    // Add the co-passenger details to the booking
+    existingBooking.copassengers.push({
+      userId: userId,
       name: user.name,
-      user: userId,
       pickupLocation,
       destinationLocation,
+      fare,
       vehicleType,
       rideType,
-      fare,
-      status: "pending",
+      status: "pending"
     });
 
-    // Save the new booking
-    await newBooking.save();
+    // Save the updated booking
+    await existingBooking.save();
 
-    return res.status(200).json({ status: "ok", message: "Successfully joined the ride", joinBooking: newBooking });
+    return res.status(200).json({ status: "ok", message: "Successfully joined the ride", updatedBooking: existingBooking });
 
   } catch (error) {
     console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
 
 
 router.get("/accepted", async (req, res) => {
