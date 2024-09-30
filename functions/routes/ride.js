@@ -120,7 +120,7 @@ router.post("/join", async (req, res) => {
     }
 
     // Find the existing booking
-    const existingBooking = await Booking.findById(bookingId);
+    const existingBooking = await Booking.findById(bookingId).populate('copassengers.user');
     if (!existingBooking) {
       return res.status(404).json({ message: "Booking not found" });
     }
@@ -139,39 +139,50 @@ router.post("/join", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { pickupLocation, destinationLocation } = passengerLocation;
-
     // Check if the vehicle type matches
     if (existingBooking.vehicleType !== vehicleType) {
       return res.status(400).json({ message: "Vehicle type does not match the booking" });
     }
 
-    // Create a new booking for the user
-    const newBooking = new Booking({
-      name: user.name,
+    // Prepare copassenger data
+    const copassengerData = {
       user: userId,
-      pickupLocation,
-      destinationLocation,
-      vehicleType,
-      rideType,
-      fare,
-      status: "pending",
-    });
+      name: user.name,
+      pickupLocation: passengerLocation.pickupLocation,
+      destinationLocation: passengerLocation.destinationLocation,
+      fare: fare,
+      status: "pending", // Initial status can be 'pending'
+    };
 
-    // Save the new booking to the database
-    await newBooking.save();
-    console.log("New Booking Created:", newBooking); // Debug log for the new booking
+    // Check if the user is already a copassenger
+    const existingCopassenger = existingBooking.copassengers.find(c => c.user.toString() === userId);
+    if (existingCopassenger) {
+      return res.status(400).json({ message: "User already joined this ride" });
+    }
 
-    return res.status(200).json({ status: "ok", message: "Successfully joined the ride", newBooking });
+    // Push the new copassenger to the existing booking
+    existingBooking.copassengers.push(copassengerData);
+
+    // Save the updated booking
+    await existingBooking.save();
+    console.log("New Copassenger Added:", copassengerData); // Debug log for the copassenger
+
+    return res.status(200).json({ status: "ok", message: "Successfully joined the ride", existingBooking });
 
   } catch (error) {
     console.error("Error occurred in /join:", error); // More specific error logging
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
+
+// Accept Endpoint
 router.post("/accept", async (req, res) => {
   try {
     const { bookingId, driverId, latitude, longitude } = req.body;
+
+    // Log incoming request data
+    console.log("Request body:", req.body);
 
     // Validate required fields
     if (!bookingId || !driverId || latitude == null || longitude == null) {
@@ -179,7 +190,7 @@ router.post("/accept", async (req, res) => {
     }
 
     // Find the booking and check if it's still pending
-    const booking = await Booking.findById(bookingId).populate('copassengers.user'); // Populate copassengers if needed
+    const booking = await Booking.findById(bookingId).populate('copassengers.user');
     if (!booking || booking.status !== "pending") {
       return res.status(400).json({ message: "Booking not available or not pending" });
     }
@@ -190,32 +201,19 @@ router.post("/accept", async (req, res) => {
       return res.status(404).json({ message: "Driver not found" });
     }
 
-    // Accept the booking by updating status and driver info
+    // Accept the booking
     booking.status = "accepted";
     booking.driver = driverId;
     booking.driverLocation = { latitude, longitude };
 
-    // Handle copassengers if it's a shared ride
+    // Update copassenger statuses
     if (booking.rideType === "Shared Ride") {
-      // Check if there is already an accepted ride
-      const existingCopassenger = booking.copassengers.find(c => c.user.toString() === booking.user.toString() && c.status === "accepted");
-
-      if (existingCopassenger) {
-        // If the user is already a copassenger, update their details if needed
-        existingCopassenger.status = "accepted"; // Ensure status is accepted
-        // Update any other relevant fields if necessary
-        await existingCopassenger.save();
-      } else {
-        // If not, add the user as a new copassenger
-        booking.copassengers.push({
-          user: booking.user, // Assuming booking.user references the User model
-          name: booking.name,  // Assuming booking.name holds the passenger's name
-          pickupLocation: booking.pickupLocation,
-          destinationLocation: booking.destinationLocation,
-          fare: booking.fare,
-          status: "accepted",
-        });
-      }
+      console.log("Handling copassengers...");
+      booking.copassengers.forEach(copassenger => {
+        if (copassenger.user.toString() === booking.user.toString()) {
+          copassenger.status = "accepted"; // Update status for the primary user
+        }
+      });
     }
 
     // Save the updated booking
@@ -226,7 +224,6 @@ router.post("/accept", async (req, res) => {
       status: "ok",
       data: {
         acceptedBooking: booking,
-        // Return accepted copassengers as well
         acceptedCopassengers: booking.copassengers.filter(c => c.status === "accepted"),
       },
     });
