@@ -151,6 +151,7 @@ router.post("/join", async (req, res) => {
       pickupLocation: passengerLocation.pickupLocation,
       destinationLocation: passengerLocation.destinationLocation,
       fare: fare,
+      rideType: "Shared Ride",
       status: "pending", // Initial status can be 'pending'
     };
 
