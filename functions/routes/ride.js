@@ -120,7 +120,7 @@ router.post("/join", async (req, res) => {
     }
 
     // Find the existing booking
-    const existingBooking = await Booking.findById(bookingId).populate('copassengers.user');
+    const existingBooking = await Booking.findById(bookingId).populate('copassengers.userId');
     if (!existingBooking) {
       return res.status(404).json({ message: "Booking not found" });
     }
