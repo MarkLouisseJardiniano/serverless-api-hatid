@@ -23,7 +23,7 @@ const bookingSchema = new mongoose.Schema({
   },
   rideType: {
     type: String,
-    enum: ["Special", "Shared Ride"],
+    enum: ["Special", "Shared Ride: Create", "Shared Ride: Join"], // Updated enum values for shared rides
     required: true,
   },
   fare: {
@@ -45,7 +45,7 @@ const bookingSchema = new mongoose.Schema({
       fare: { type: Number, required: true },
       rideType: {
         type: String,
-        enum: ["Special", "Shared Ride"],
+        enum: ["Special", "Shared Ride: Join"], // Copassenger can only join shared rides
         required: true,
       },
       status: {
