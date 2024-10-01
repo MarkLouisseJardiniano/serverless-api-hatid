@@ -197,15 +197,14 @@ router.get("/:bookingId/joined", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 router.post("/accept-copassenger", async (req, res) => {
   try {
-    const { bookingId, userId, pickupLocation, destinationLocation, fare } = req.body;
-
-    console.log("Request body:", req.body);
+    const { bookingId, userId, pickupLocation, destinationLocation, fare, rideType } = req.body;
 
     // Validate required fields
-    if (!bookingId || !userId || !pickupLocation || !destinationLocation || fare == null) {
-      return res.status(400).json({ message: "All fields are required (Booking ID, User ID, Pickup Location, Destination Location, and Fare)." });
+    if (!bookingId || !userId || !pickupLocation || !destinationLocation || fare == null || !rideType) {
+      return res.status(400).json({ message: "All fields are required (Booking ID, User ID, Pickup Location, Destination Location, Fare, and Ride Type)." });
     }
 
     // Find the booking by ID
@@ -219,6 +218,12 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     // Check if the user is already in the co-passengers list
     const existingCopassenger = booking.copassengers.find(cop => cop.userId.toString() === userId);
     if (existingCopassenger) {
@@ -228,9 +233,11 @@ router.post("/accept-copassenger", async (req, res) => {
     // Add the co-passenger details to the copassengers array
     booking.copassengers.push({
       userId,
+      name: user.name,  // Include the name from the User model
       pickupLocation,
       destinationLocation,
       fare,
+      rideType,  // Ensure the rideType is added
       status: "accepted",  // Automatically mark as accepted
     });
 
