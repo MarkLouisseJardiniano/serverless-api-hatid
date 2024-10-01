@@ -197,16 +197,15 @@ router.get("/:bookingId/joined", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 router.post("/accept-copassenger", async (req, res) => {
   try {
-    const { bookingId, userId } = req.body;
+    const { bookingId, userId, pickupLocation, destinationLocation, fare } = req.body;
 
     console.log("Request body:", req.body);
 
     // Validate required fields
-    if (!bookingId || !userId) {
-      return res.status(400).json({ message: "Booking ID and User ID are required" });
+    if (!bookingId || !userId || !pickupLocation || !destinationLocation || fare == null) {
+      return res.status(400).json({ message: "All fields are required (Booking ID, User ID, Pickup Location, Destination Location, and Fare)." });
     }
 
     // Find the booking by ID
@@ -220,29 +219,32 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Check if copassengers array exists and find the co-passenger by userId
-    if (!booking.copassengers || booking.copassengers.length === 0) {
-      return res.status(404).json({ message: "No co-passengers found in this booking." });
+    // Check if the user is already in the co-passengers list
+    const existingCopassenger = booking.copassengers.find(cop => cop.userId.toString() === userId);
+    if (existingCopassenger) {
+      return res.status(400).json({ message: "Co-passenger already exists in this booking." });
     }
 
-    const copassenger = booking.copassengers.find(cop => cop._id.toString() === userId);
-    if (!copassenger) {
-      return res.status(404).json({ message: "Co-passenger not found in this booking." });
-    }
-
-    // Update the status of the co-passenger to "accepted"
-    copassenger.status = "accepted";
+    // Add the co-passenger details to the copassengers array
+    booking.copassengers.push({
+      userId,
+      pickupLocation,
+      destinationLocation,
+      fare,
+      status: "accepted",  // Automatically mark as accepted
+    });
 
     // Save the updated booking
     await booking.save();
 
-    return res.status(200).json({ status: "ok", message: "Co-passenger accepted", booking });
+    return res.status(200).json({ status: "ok", message: "Co-passenger accepted and added to the booking.", booking });
 
   } catch (error) {
     console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
 
 
 router.post("/accept", async (req, res) => {
