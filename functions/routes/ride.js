@@ -195,8 +195,7 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(404).json({ message: "No co-passengers found in this booking." });
     }
 
-    // Find the co-passenger in the booking
-    const copassenger = booking.copassengers.find(cop => cop.userId && cop.userId.toString() === userId);
+    const copassenger = booking.copassengers.find(cop => cop._id.toString() === userId);
     if (!copassenger) {
       return res.status(404).json({ message: "Co-passenger not found in this booking." });
     }
