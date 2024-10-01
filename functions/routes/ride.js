@@ -48,6 +48,8 @@ router.get("/available", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+
 router.get("/available/shared", async (req, res) => {
   try {
     // Define the query to find accepted shared rides
@@ -165,6 +167,34 @@ router.post("/join", async (req, res) => {
   } catch (error) {
     console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+router.get("/:bookingId/joined", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    // Find the booking with the specified ID
+    const booking = await Booking.findById(bookingId).populate('copassengers.userId', 'name'); // Populate with user names
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Check if the driver is assigned to the booking
+    if (!booking.driver) {
+      return res.status(400).json({ message: "No driver assigned to this booking." });
+    }
+
+    // Respond with the joined passengers
+    res.status(200).json({
+      status: "ok",
+      data: {
+        bookingId: booking._id,
+        copassengers: booking.copassengers, // Will include user IDs and statuses
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching joined passengers:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
