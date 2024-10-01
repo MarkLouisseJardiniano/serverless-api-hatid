@@ -168,7 +168,6 @@ router.post("/join", async (req, res) => {
   }
 });
 
-
 router.post("/accept-copassenger", async (req, res) => {
   try {
     const { bookingId, userId } = req.body;
@@ -191,8 +190,13 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
+    // Check if copassengers array exists and find the co-passenger by userId
+    if (!booking.copassengers || booking.copassengers.length === 0) {
+      return res.status(404).json({ message: "No co-passengers found in this booking." });
+    }
+
     // Find the co-passenger in the booking
-    const copassenger = booking.copassengers.find(cop => cop.userId.toString() === userId);
+    const copassenger = booking.copassengers.find(cop => cop.userId && cop.userId.toString() === userId);
     if (!copassenger) {
       return res.status(404).json({ message: "Co-passenger not found in this booking." });
     }
