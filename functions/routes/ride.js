@@ -149,7 +149,7 @@ router.get("/joining/shared/:bookingId", async (req, res) => {
     }
 
     // Fetch the next booking as a "Join" action
-    const nextBooking = await Booking.findOne({
+    const nextBooking = await Booking.find({
       parentBooking: currentBooking._id, // Ensure it relates to the current booking
       rideAction: "Join", // Only fetch bookings with "Join" action
       status: "pending",
