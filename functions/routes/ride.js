@@ -192,7 +192,7 @@ router.post("/join/shared", async (req, res) => {
     }
 
     // Ensure the driver has accepted the ride
-    if (!existingBooking.driverAccepted) {
+    if (!existingBooking.status === "accepted") {
       return res.status(403).json({ error: "You cannot join this ride until the driver has accepted it." });
     }
 
