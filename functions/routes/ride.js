@@ -20,10 +20,17 @@ router.get("/booking", async (req, res) => {
 router.get("/available", async (req, res) => {
   try {
     const { driverId } = req.query;
-    
+
+    // Validate that the driverId is provided
+    if (!driverId) {
+      console.error("Driver ID is required");
+      return res.status(400).json({ message: "Driver ID is required" });
+    }
+
     // Find the driver by ID
     const driver = await Driver.findById(driverId);
     if (!driver) {
+      console.error(`Driver not found: ${driverId}`);
       return res.status(404).json({ message: "Driver not found" });
     }
 
@@ -37,11 +44,11 @@ router.get("/available", async (req, res) => {
     }).sort({ updatedAt: -1 });
 
     // Build the query to find pending special and shared rides with "Create" action
-    let query = {
+    const query = {
       status: "pending",
       vehicleType: vehicleType,
       rideType: { $in: ["Special", "Shared"] }, // Fetch only 'Special' and 'Shared' rides
-      ...(rideType === "Shared" && { rideAction: "Create" }) // If it's Shared, rideAction must be Create
+      rideAction: "Create" // Ensure the rideAction is "Create"
     };
 
     // If the driver has a current booking, exclude it
@@ -51,13 +58,12 @@ router.get("/available", async (req, res) => {
 
     // Fetch matching bookings sorted by creation date
     const newBookings = await Booking.find(query).sort({ createdAt: 1 });
-    
+
     // Return the found bookings
     res.status(200).json({ status: "ok", data: newBookings });
-    
   } catch (error) {
     console.error("Error fetching bookings:", error);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
