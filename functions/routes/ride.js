@@ -187,7 +187,7 @@ router.post("/join/shared", async (req, res) => {
     }
 
     // Check if the booking is a shared ride that is in 'Create' mode
-    if (existingBooking.rideType !== "Shared" || existingBooking.rideAction === "Join") {
+    if (existingBooking.rideType !== "Shared Ride" || existingBooking.rideAction === "Join") {
       return res.status(400).json({ error: "You can only join a shared ride that is in 'Create' status." });
     }
 
