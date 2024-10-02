@@ -70,6 +70,7 @@ const bookingSchema = new mongoose.Schema({
       },
     },
   ],
+  parentBooking: { type: mongoose.Schema.Types.ObjectId, ref: "Booking" }, // Reference to the parent booking
   status: {
     type: String,
     enum: ["pending", "accepted", "completed", "canceled"],
