@@ -47,7 +47,7 @@ router.get("/available", async (req, res) => {
     const query = {
       status: "pending",
       vehicleType: vehicleType,
-      rideType: { $in: ["Special", "Shared"] }, // Fetch only 'Special' and 'Shared' rides
+      rideType: { $in: ["Special", "Shared Ride"] }, // Fetch only 'Special' and 'Shared' rides
       rideAction: "Create" // Ensure the rideAction is "Create"
     };
 
