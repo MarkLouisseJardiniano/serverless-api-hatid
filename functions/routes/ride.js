@@ -17,32 +17,44 @@ router.get("/booking", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 router.get("/available", async (req, res) => {
   try {
     const { driverId } = req.query;
+    
+    // Find the driver by ID
     const driver = await Driver.findById(driverId);
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
 
+    // Get the driver's vehicle type
     const vehicleType = driver.vehicleInfo2.vehicleType;
+
+    // Check for the driver's current booking (accepted or rejected)
     const currentBooking = await Booking.findOne({
       driver: driverId,
       status: { $in: ["accepted", "rejected"] }
     }).sort({ updatedAt: -1 });
 
+    // Build the query to find pending special and shared rides with "Create" action
     let query = {
       status: "pending",
-      vehicleType: vehicleType
+      vehicleType: vehicleType,
+      rideType: { $in: ["Special", "Shared"] }, // Fetch only 'Special' and 'Shared' rides
+      ...(rideType === "Shared" && { rideAction: "Create" }) // If it's Shared, rideAction must be Create
     };
 
+    // If the driver has a current booking, exclude it
     if (currentBooking) {
       query._id = { $ne: currentBooking._id };
     }
 
+    // Fetch matching bookings sorted by creation date
     const newBookings = await Booking.find(query).sort({ createdAt: 1 });
+    
+    // Return the found bookings
     res.status(200).json({ status: "ok", data: newBookings });
+    
   } catch (error) {
     console.error("Error fetching bookings:", error);
     res.status(500).json({ message: "Server Error" });
@@ -87,8 +99,7 @@ router.get("/accepted", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
-router.post("/create", async (req, res) => {
+router.post("/create/special", async (req, res) => {
   const { userId, pickupLocation, destinationLocation, vehicleType, rideType, fare } = req.body;
 
   if (!userId || !pickupLocation || !destinationLocation || !vehicleType || !rideType || fare == null) {
@@ -107,7 +118,47 @@ router.post("/create", async (req, res) => {
       pickupLocation,
       destinationLocation,
       vehicleType,
+      rideType: "Special",
+      fare,
+      status: "pending",
+    });
+
+    await newBooking.save();
+    res.status(201).json(newBooking);
+  } catch (error) {
+    console.error("Error creating booking:", error);
+    res.status(500).json({ error: "Error creating booking" });
+  }
+});
+// Create a new ride (special or shared)
+router.post("/create", async (req, res) => {
+  const { userId, pickupLocation, destinationLocation, vehicleType, rideType, rideAction, fare } = req.body;
+
+  // Validate required fields
+  if (!userId || !pickupLocation || !destinationLocation || !vehicleType || !rideType || fare == null) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  // Validate rideAction only if rideType is "Shared"
+  if (rideType === "Shared Ride" && !rideAction) {
+    return res.status(400).json({ error: "Ride Action (Create or Join) is required for Shared Rides" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Create a new booking for the ride
+    const newBooking = new Booking({
+      name: user.name,
+      user: userId,
+      pickupLocation,
+      destinationLocation,
+      vehicleType,
       rideType,
+      rideAction: rideType === "Shared Ride" ? "Create" : null, // Only set rideAction for shared rides
       fare,
       status: "pending",
     });
@@ -120,82 +171,55 @@ router.post("/create", async (req, res) => {
   }
 });
 
+// Join an existing shared ride
+router.post("/join/shared", async (req, res) => {
+  const { bookingId, userId, pickupLocation, destinationLocation, vehicleType, fare } = req.body;
 
-router.post("/join", async (req, res) => {
+  // Validate required fields
+  if (!bookingId || !userId || !pickupLocation || !destinationLocation || !vehicleType || fare == null) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
   try {
-    const { bookingId, userId, passengerLocation, vehicleType, rideType, fare } = req.body;
-
-    // Validate required fields
-    if (!bookingId || !userId || !passengerLocation || !vehicleType || !rideType || fare == null) {
-      return res.status(400).json({ message: "Booking ID, User ID, Passenger Location, Vehicle Type, Ride Type, and Fare are required" });
-    }
-
     const existingBooking = await Booking.findById(bookingId);
     if (!existingBooking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    // Check if the booking is a shared ride that is in 'Create' mode
+    if (existingBooking.rideType !== "Shared" || existingBooking.rideAction !== "Create") {
+      return res.status(400).json({ error: "You can only join a shared ride that is in 'Create' status." });
+    }
+
+    // Ensure the driver has accepted the ride
+    if (!existingBooking.driverAccepted) {
+      return res.status(403).json({ error: "You cannot join this ride until the driver has accepted it." });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    // Ensure the user can join if the rideType is 'Shared Ride: Join'
-    if (existingBooking.rideType !== "Shared Ride: Create") {
-      return res.status(400).json({ message: "This booking is not available for joining." });
-    }
-
-    const { pickupLocation, destinationLocation } = passengerLocation;
-
-    // Create a new booking object for the joining passenger
+    // Create a new booking for the joining passenger
     const newBooking = new Booking({
       name: user.name,
       user: userId,
       pickupLocation,
       destinationLocation,
       vehicleType,
-      rideType: "Shared Ride: Join", 
+      rideType: "Shared Ride", // Keep rideType as shared
+      rideAction: "Join", // Set action to Join
       fare,
       status: "pending",
+      parentBooking: existingBooking._id, // Link to the parent shared ride
     });
 
-    // Save the new booking
     await newBooking.save();
-
-    return res.status(200).json({ status: "ok", message: "Successfully joined the ride", joinBooking: newBooking });
-
+    res.status(201).json({ status: "ok", message: "Successfully joined the shared ride", booking: newBooking });
   } catch (error) {
-    console.error("Error occurred:", error.message);
-    return res.status(500).json({ message: "Server Error", error: error.message });
-  }
-});
-
-router.get("/:bookingId/joined", async (req, res) => {
-  try {
-    const { bookingId } = req.params;
-
-    // Find the booking with the specified ID
-    const booking = await Booking.findById(bookingId).populate('copassengers.userId', 'name'); // Populate with user names
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-
-    // Check if the driver is assigned to the booking
-    if (!booking.driver) {
-      return res.status(400).json({ message: "No driver assigned to this booking." });
-    }
-
-    // Respond with the joined passengers
-    res.status(200).json({
-      status: "ok",
-      data: {
-        bookingId: booking._id,
-        copassengers: booking.copassengers, // Will include user IDs and statuses
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching joined passengers:", error);
-    res.status(500).json({ message: "Server Error" });
+    console.error("Error joining ride:", error);
+    res.status(500).json({ error: "Error joining the shared ride" });
   }
 });
 
@@ -203,23 +227,20 @@ router.post("/accept-copassenger", async (req, res) => {
   try {
     const { bookingId, userId, pickupLocation, destinationLocation, fare, rideType } = req.body;
 
-    // Validate required fields
     if (!bookingId || !userId || !pickupLocation || !destinationLocation || fare == null || !rideType) {
       return res.status(400).json({ message: "All fields are required (Booking ID, User ID, Pickup Location, Destination Location, Fare, and Ride Type)." });
     }
 
-    // Find the booking by ID
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Ensure it's a shared ride
     if (booking.rideType !== "Shared Ride") {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Find the user
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -231,18 +252,16 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Co-passenger already exists in this booking." });
     }
 
-    // Add the co-passenger details to the copassengers array
     booking.copassengers.push({
       userId,
-      name: user.name,  // Include the name from the User model
+      name: user.name,  
       pickupLocation,
       destinationLocation,
       fare,
-      rideType,  // Ensure the rideType is added
-      status: "accepted",  // Automatically mark as accepted
+      rideType,
+      status: "accepted",
     });
 
-    // Save the updated booking
     await booking.save();
 
     return res.status(200).json({ status: "ok", message: "Co-passenger accepted and added to the booking.", booking });
