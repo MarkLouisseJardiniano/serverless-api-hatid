@@ -130,6 +130,48 @@ router.post("/create/special", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
+
+
+// Get the next pending shared ride for joining
+router.get("/joining/shared/:bookingId", async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    // Validate bookingId
+    if (!bookingId) {
+      return res.status(400).json({ message: "Booking ID is required" });
+    }
+
+    // Find the current booking to ensure it's a shared ride
+    const currentBooking = await Booking.findById(bookingId);
+    if (!currentBooking || currentBooking.rideType !== "Shared Ride") {
+      return res.status(404).json({ message: "Shared ride not found" });
+    }
+
+    // Fetch the next booking as a "Join" action
+    const nextBooking = await Booking.findOne({
+      parentBooking: currentBooking._id, // Ensure it relates to the current booking
+      rideAction: "Join", // Only fetch bookings with "Join" action
+      status: "pending",
+      vehicleType: currentBooking.vehicleType, // Ensure vehicle type matches
+      rideType: "Shared Ride",
+    }).sort({ createdAt: 1 }); // Get the earliest pending shared ride
+
+    // Respond with the next available booking or a message if none found
+    if (nextBooking) {
+      res.status(200).json({
+        status: "ok",
+        data: nextBooking,
+      });
+    } else {
+      res.status(404).json({ message: "No pending join bookings available" });
+    }
+  } catch (error) {
+    console.error("Error fetching next shared ride:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 // Create a new ride (special or shared)
 router.post("/create", async (req, res) => {
   const { userId, pickupLocation, destinationLocation, vehicleType, rideType, rideAction, fare } = req.body;
