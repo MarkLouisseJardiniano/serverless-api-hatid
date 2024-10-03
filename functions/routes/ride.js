@@ -268,7 +268,6 @@ router.post("/join/shared", async (req, res) => {
     res.status(500).json({ error: "Error joining the shared ride" });
   }
 });
-
 router.post("/accept-copassenger", async (req, res) => {
   try {
     const { bookingId, userId, newBookingId } = req.body; // Expect newBookingId from the request body
@@ -299,22 +298,23 @@ router.post("/accept-copassenger", async (req, res) => {
 
     // Push the new booking ID into the copassengers array
     booking.copassengers.push({
-      bookingId: newBookingId,
-      rideType: "Shared Ride",
+      bookingId: newBookingId, // This is where you store the new booking ID
       status: "accepted",
     });
 
     await booking.save();
 
-    return res.status(200).json({ status: "ok", message: "Co-passenger accepted and added to the booking.", booking });
+    // Populate the newBookingId to get its details
+    const populatedBooking = await Booking.findById(bookingId)
+      .populate('copassengers.bookingId'); // Populating bookingId in copassengers
+
+    return res.status(200).json({ status: "ok", message: "Co-passenger accepted and added to the booking.", booking: populatedBooking });
 
   } catch (error) {
     console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
-
 
 router.post("/accept", async (req, res) => {
   try {
