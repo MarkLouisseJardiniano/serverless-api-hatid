@@ -271,9 +271,9 @@ router.post("/join/shared", async (req, res) => {
 
 router.post("/accept-copassenger", async (req, res) => {
   try {
-    const { bookingId, userId, newBookingId } = req.body;
+    const { parentBookingId, userId, newBookingId } = req.body;
 
-    if (!bookingId || !userId || !newBookingId) {
+    if (!parentBookingId || !userId || !newBookingId) {
       return res.status(400).json({ message: "Booking ID, User ID, and New Booking ID are required." });
     }
 
