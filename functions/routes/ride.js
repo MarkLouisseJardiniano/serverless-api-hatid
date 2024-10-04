@@ -159,7 +159,7 @@ router.get("/joining/shared/:bookingId", async (req, res) => {
     }).sort({ createdAt: 1 }); // Get the earliest pending shared ride
 
     // Respond with the next available booking or a message if none found
-    if (joinBooking) {
+    if (joinBooking.length > 0) {
       res.status(200).json({
         status: "ok",
         data: joinBooking,
