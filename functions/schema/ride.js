@@ -40,7 +40,6 @@ const bookingSchema = new mongoose.Schema({
   copassengers: [
     {
       userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-      name: { type: String, required: true },
       pickupLocation: {
         latitude: { type: Number, required: true },
         longitude: { type: Number, required: true },
