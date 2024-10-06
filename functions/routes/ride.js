@@ -267,15 +267,17 @@ router.post("/join/shared", async (req, res) => {
     console.error("Error joining ride:", error);
     res.status(500).json({ error: "Error joining the shared ride" });
   }
-});
-router.post("/accept-copassenger", async (req, res) => {
+});router.post("/accept-copassenger", async (req, res) => {
   try {
     const { newBookingId } = req.body;
 
     // Ensure all required fields are present
-    if ( !newBookingId) {
+    if (!newBookingId) {
       return res.status(400).json({ message: "User ID and New Booking ID are required." });
     }
+
+    // Assuming userId is attached to req.user by your authentication middleware
+    const userId = req.user._id; // Ensure the user object exists
 
     // Find the new booking that is being accepted
     const newBooking = await Booking.findById(newBookingId);
@@ -305,6 +307,7 @@ router.post("/accept-copassenger", async (req, res) => {
 
     // Push the new booking details to the copassengers array
     parentBooking.copassengers.push({
+      userId: userId, // Add userId to the co-passenger entry
       name: user.name,
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
