@@ -305,7 +305,7 @@ router.post("/accept-copassenger", async (req, res) => {
 
     // Push the new booking details to the copassengers array
     parentBooking.copassengers.push({
-      userId: userId,
+      user: userId,
       name: user.name,
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
