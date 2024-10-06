@@ -269,60 +269,79 @@ router.post("/join/shared", async (req, res) => {
   }
 });
 
+const express = require("express");
+const router = express.Router();
+const Booking = require("../models/Booking");
+const User = require("../models/User");
+
 router.post("/accept-copassenger", async (req, res) => {
   try {
     const { parentBookingId, userId, newBookingId } = req.body;
 
+    // Ensure all required fields are present
     if (!parentBookingId || !userId || !newBookingId) {
       return res.status(400).json({ message: "Booking ID, User ID, and New Booking ID are required." });
     }
 
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
+    // Find the parent booking
+    const parentBooking = await Booking.findById(parentBookingId).populate('parentBooking');
+    if (!parentBooking) {
+      return res.status(404).json({ message: "Parent booking not found." });
     }
 
-    if (booking.rideType !== "Shared Ride") {
+    // Ensure the parent booking is a shared ride
+    if (parentBooking.rideType !== "Shared Ride") {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
+    // Find the user by ID
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found." });
     }
 
-    // Fetch the new booking details to populate the required fields
+    // Fetch the new booking that is being accepted
     const newBooking = await Booking.findById(newBookingId);
     if (!newBooking) {
-      return res.status(404).json({ message: "New booking not found" });
+      return res.status(404).json({ message: "New booking not found." });
     }
 
-    // Check if the user is already in the co-passengers list
-    const existingCopassenger = booking.copassengers.find(cop => cop.bookingId.toString() === newBookingId);
+    // Check if the co-passenger is already in the copassengers list
+    const existingCopassenger = parentBooking.copassengers.find(
+      cop => cop.userId.toString() === userId
+    );
     if (existingCopassenger) {
       return res.status(400).json({ message: "Co-passenger already exists in this booking." });
     }
 
-    // Push the new booking ID into the copassengers array
-    booking.copassengers.push({
-      bookingId: newBookingId,
+    // Push the new booking details to the copassengers array
+    parentBooking.copassengers.push({
+      userId: userId,
       name: user.name,
-      fare: newBooking.fare,
-      rideType: newBooking.rideType,
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
+      fare: newBooking.fare,
+      rideType: newBooking.rideType,
       status: "accepted",
     });
 
-    await booking.save();
+    // Save the updated parent booking
+    await parentBooking.save();
 
-    return res.status(200).json({ status: "ok", message: "Co-passenger accepted and added to the booking.", booking });
+    return res.status(200).json({
+      status: "ok",
+      message: "Co-passenger accepted and added to the booking.",
+      booking: parentBooking,
+    });
 
   } catch (error) {
     console.error("Error occurred:", error.message);
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
+module.exports = router;
+
 
 
 router.post("/accept", async (req, res) => {
