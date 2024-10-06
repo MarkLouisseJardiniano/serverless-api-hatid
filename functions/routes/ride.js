@@ -269,11 +269,6 @@ router.post("/join/shared", async (req, res) => {
   }
 });
 
-const express = require("express");
-const router = express.Router();
-const Booking = require("../models/Booking");
-const User = require("../models/User");
-
 router.post("/accept-copassenger", async (req, res) => {
   try {
     const { parentBookingId, userId, newBookingId } = req.body;
@@ -339,8 +334,6 @@ router.post("/accept-copassenger", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
-module.exports = router;
 
 
 
