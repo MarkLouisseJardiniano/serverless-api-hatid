@@ -270,7 +270,7 @@ router.post("/join/shared", async (req, res) => {
 });
 router.post("/accept-copassenger", async (req, res) => {
   try {
-    const {  newBookingId } = req.body;
+    const { newBookingId } = req.body;
 
     // Ensure all required fields are present
     if ( !newBookingId) {
@@ -289,6 +289,11 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
 
     // Check if the co-passenger is already in the copassengers list
     const existingCopassenger = parentBooking.copassengers.find(
@@ -300,7 +305,6 @@ router.post("/accept-copassenger", async (req, res) => {
 
     // Push the new booking details to the copassengers array
     parentBooking.copassengers.push({
-      user: userId,
       name: user.name,
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
