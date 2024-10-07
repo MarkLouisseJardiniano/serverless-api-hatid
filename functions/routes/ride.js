@@ -273,8 +273,8 @@ router.post("/accept-copassenger", async (req, res) => {
     const { newBookingId } = req.body;
 
     // Ensure all required fields are present
-    if ( !newBookingId) {
-      return res.status(400).json({ message: "User ID and New Booking ID are required." });
+    if (!newBookingId) {
+      return res.status(400).json({ message: "New Booking ID is required." });
     }
 
     // Find the new booking that is being accepted
@@ -289,6 +289,7 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
+    // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
@@ -296,6 +297,10 @@ router.post("/accept-copassenger", async (req, res) => {
       rideType: newBooking.rideType,
       status: "accepted",
     });
+
+    // Update the status of the new booking
+    newBooking.status = "accepted"; // Update status
+    await newBooking.save(); // Save the updated booking
 
     // Save the updated parent booking
     await parentBooking.save();
