@@ -289,8 +289,16 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
+    // Get the user's name from the session
+    const name = req.session.user?.name; // Assuming you stored user's name in the session
+
+    if (!name) {
+      return res.status(401).json({ message: "User not authenticated." });
+    }
+
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
+      name, // Using the name from session
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
       fare: newBooking.fare,
