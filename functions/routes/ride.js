@@ -349,15 +349,14 @@ router.post("/accept-copassenger", async (req, res) => {
     }
 
     // Check if the user's name is populated correctly
-    const userName = newBooking.user ? newBooking.user.name : null;
-    if (!userName) {
-      return res.status(400).json({ message: "User name is not available." });
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
-
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
       userId: userId, // Add userId from request body
-      name: userName,  // Use the populated name from the user object
+      name: user.name,  // Use the populated name from the user object
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
       fare: newBooking.fare,
