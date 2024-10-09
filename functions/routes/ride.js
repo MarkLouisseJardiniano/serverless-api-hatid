@@ -283,6 +283,8 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(404).json({ message: "New booking not found." });
     }
 
+    console.log("New booking details with user name:", newBooking);
+
     // Ensure the parent booking is a shared ride
     const parentBooking = await Booking.findById(newBooking.parentBooking);
     if (!parentBooking || parentBooking.rideType !== "Shared Ride") {
@@ -317,7 +319,6 @@ router.post("/accept-copassenger", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
 
 
 router.post("/accept", async (req, res) => {
