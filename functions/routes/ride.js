@@ -336,11 +336,17 @@ router.post("/accept-copassenger", async (req, res) => {
 
     // Find the new booking that is being accepted, and populate the user's name
     const newBooking = await Booking.findById(newBookingId).populate('user', 'name');
+
+    // Check if newBooking exists
     if (!newBooking) {
       return res.status(404).json({ message: "New booking not found." });
     }
 
-    console.log("New booking details with populated user:", newBooking);
+    console.log("New booking details with populated user:", JSON.stringify(newBooking, null, 2));
+
+    // Fetch user details to confirm it's correct
+    const user = await User.findById(userId);
+    console.log("User details:", user);
 
     // Ensure the parent booking is a shared ride
     const parentBooking = await Booking.findById(newBooking.parentBooking);
@@ -349,14 +355,16 @@ router.post("/accept-copassenger", async (req, res) => {
     }
 
     // Check if the user's name is populated correctly
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    const userName = newBooking.user ? newBooking.user.name : null;
+    if (!userName) {
+      console.error("User name is not available in newBooking:", newBooking);
+      return res.status(400).json({ message: "User name is not available." });
     }
+
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
       userId: userId, // Add userId from request body
-      name: user.name,  // Use the populated name from the user object
+      name: userName,  // Use the populated name from the user object
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
       fare: newBooking.fare,
@@ -382,6 +390,7 @@ router.post("/accept-copassenger", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
 
 router.post("/accept", async (req, res) => {
   try {
