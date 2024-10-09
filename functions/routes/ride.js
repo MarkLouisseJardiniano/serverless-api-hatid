@@ -153,7 +153,7 @@ router.get("/joining/shared/:bookingId", async (req, res) => {
     const joinBooking = await Booking.find({
       parentBooking: currentBooking._id,
       rideAction: "Join",
-      status: "pending",
+      status: ["pending","accepted"],
       vehicleType: currentBooking.vehicleType, // Ensure vehicle type matches
       rideType: "Shared Ride",
     }).sort({ createdAt: 1 }); // Get the earliest pending shared ride
