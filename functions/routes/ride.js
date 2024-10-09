@@ -351,7 +351,7 @@ router.post("/accept-copassenger", async (req, res) => {
     }
 
     // Check if the user's name is populated correctly
-    const userName = newBooking.user ? newBooking.user.name : null;
+    const userName = newBooking.name ? newBooking.user.name : null;
     if (!userName) {
       return res.status(400).json({ message: "User name is not available." });
     }
