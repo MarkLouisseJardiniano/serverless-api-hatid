@@ -334,8 +334,8 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "New Booking ID and User ID are required." });
     }
 
-    // Find the new booking that is being accepted, and populate the user's name
-    const newBooking = await Booking.findById(newBookingId).populate('user', 'name');
+    // Find the new booking that is being accepted and populate the user's name
+    const newBooking = await Booking.findById(newBookingId).populate('userId', 'name'); // Make sure to populate the correct field
 
     // Check if newBooking exists
     if (!newBooking) {
@@ -355,7 +355,7 @@ router.post("/accept-copassenger", async (req, res) => {
     }
 
     // Check if the user's name is populated correctly
-    const userName = newBooking.user ? newBooking.user.name : null;
+    const userName = newBooking.userId ? newBooking.userId.name : null; // Ensure you are checking the correct field here
     if (!userName) {
       console.error("User name is not available in newBooking:", newBooking);
       return res.status(400).json({ message: "User name is not available." });
