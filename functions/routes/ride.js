@@ -277,8 +277,8 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "New Booking ID is required." });
     }
 
-    // Find the new booking that is being accepted
-    const newBooking = await Booking.findById(newBookingId);
+    // Find the new booking that is being accepted, and populate the user's name
+    const newBooking = await Booking.findById(newBookingId).populate('user', 'name');
     if (!newBooking) {
       return res.status(404).json({ message: "New booking not found." });
     }
@@ -289,16 +289,9 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Get the user's name from the session
-    const name = req.session.user?.name; // Assuming you stored user's name in the session
-
-    if (!name) {
-      return res.status(401).json({ message: "User not authenticated." });
-    }
-
-    // Add co-passenger details to the parent booking
+    // Add co-passenger details to the parent booking, using the name from the populated booking's user
     parentBooking.copassengers.push({
-      name, // Using the name from session
+      name: newBooking.user.name, // Using the name from the associated user in newBooking
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
       fare: newBooking.fare,
