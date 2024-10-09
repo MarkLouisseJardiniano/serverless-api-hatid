@@ -261,13 +261,72 @@ router.post("/join/shared", async (req, res) => {
     res.status(201).json({ 
       status: "ok", 
       message: "Successfully joined the shared ride", 
-      bookingId: newBooking._id // Return the new booking ID
+      bookingId: newBooking._id,
+      name: user.name 
     });
   } catch (error) {
     console.error("Error joining ride:", error);
     res.status(500).json({ error: "Error joining the shared ride" });
   }
 });
+// Route to join a shared ride
+router.post("/join/shared", async (req, res) => {
+  const { bookingId, userId, pickupLocation, destinationLocation, vehicleType, fare } = req.body;
+
+  // Validate required fields
+  if (!bookingId || !userId || !pickupLocation || !destinationLocation || !vehicleType || fare == null) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  try {
+    const existingBooking = await Booking.findById(bookingId);
+    if (!existingBooking) {
+      return res.status(404).json({ error: "Booking not found" });
+    }
+
+    // Check if the booking is a shared ride that is in 'Create' mode
+    if (existingBooking.rideType !== "Shared Ride" || existingBooking.rideAction === "Join") {
+      return res.status(400).json({ error: "You can only join a shared ride that is in 'Create' status." });
+    }
+
+    // Ensure the driver has accepted the ride
+    if (existingBooking.status !== "accepted") {
+      return res.status(403).json({ error: "You cannot join this ride until the driver has accepted it." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Create a new booking for the joining passenger
+    const newBooking = new Booking({
+      name: user.name,
+      user: userId,
+      pickupLocation,
+      destinationLocation,
+      vehicleType,
+      rideType: "Shared Ride", // Keep rideType as shared
+      rideAction: "Join", // Set action to Join
+      fare,
+      status: "pending",
+      parentBooking: existingBooking._id, // Link to the parent shared ride
+    });
+
+    await newBooking.save();
+    res.status(201).json({
+      status: "ok",
+      message: "Successfully joined the shared ride",
+      bookingId: newBooking._id,
+      name: user.name,
+    });
+  } catch (error) {
+    console.error("Error joining ride:", error);
+    res.status(500).json({ error: "Error joining the shared ride" });
+  }
+});
+
+// Route to accept a co-passenger
 router.post("/accept-copassenger", async (req, res) => {
   try {
     const { newBookingId } = req.body;
@@ -283,8 +342,7 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(404).json({ message: "New booking not found." });
     }
 
-    // Check if the populated user data is correct
-    console.log("New booking details with user name:", newBooking);
+    console.log("New booking details with populated user:", newBooking);
 
     // Ensure the parent booking is a shared ride
     const parentBooking = await Booking.findById(newBooking.parentBooking);
@@ -292,13 +350,15 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Add co-passenger details to the parent booking, using the name from the populated booking's user
-    if (!newBooking.user || !newBooking.user.name) {
-      return res.status(400).json({ message: "User details not found or user has no name." });
+    // Check if the user's name is populated correctly
+    const userName = newBooking.user ? newBooking.user.name : null;
+    if (!userName) {
+      return res.status(400).json({ message: "User name is not available." });
     }
 
+    // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
-      name: newBooking.user.name, // Correctly use the populated name from the user object
+      name: userName, // Use the populated name from the user object
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
       fare: newBooking.fare,
@@ -324,6 +384,7 @@ router.post("/accept-copassenger", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
 
 
 router.post("/accept", async (req, res) => {
