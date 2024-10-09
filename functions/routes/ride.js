@@ -283,6 +283,7 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(404).json({ message: "New booking not found." });
     }
 
+    // Check if the populated user data is correct
     console.log("New booking details with user name:", newBooking);
 
     // Ensure the parent booking is a shared ride
@@ -292,8 +293,12 @@ router.post("/accept-copassenger", async (req, res) => {
     }
 
     // Add co-passenger details to the parent booking, using the name from the populated booking's user
+    if (!newBooking.user || !newBooking.user.name) {
+      return res.status(400).json({ message: "User details not found or user has no name." });
+    }
+
     parentBooking.copassengers.push({
-      name: newBooking.user.name, // Using the name from the associated user in newBooking
+      name: newBooking.user.name, // Correctly use the populated name from the user object
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
       fare: newBooking.fare,
