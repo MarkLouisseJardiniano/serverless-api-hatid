@@ -335,7 +335,7 @@ router.post("/accept-copassenger", async (req, res) => {
     }
 
     // Find the new booking that is being accepted and populate the user's name
-    const newBooking = await Booking.findById(newBookingId).populate('userId', 'name'); // Make sure to populate the correct field
+    const newBooking = await Booking.findById(newBookingId).populate('userId', 'name'); // Ensure correct field is populated
 
     // Check if newBooking exists
     if (!newBooking) {
@@ -344,10 +344,6 @@ router.post("/accept-copassenger", async (req, res) => {
 
     console.log("New booking details with populated user:", JSON.stringify(newBooking, null, 2));
 
-    // Fetch user details to confirm it's correct
-    const user = await User.findById(userId);
-    console.log("User details:", user);
-
     // Ensure the parent booking is a shared ride
     const parentBooking = await Booking.findById(newBooking.parentBooking);
     if (!parentBooking || parentBooking.rideType !== "Shared Ride") {
@@ -355,7 +351,7 @@ router.post("/accept-copassenger", async (req, res) => {
     }
 
     // Check if the user's name is populated correctly
-    const userName = newBooking.userId ? newBooking.userId.name : null; // Ensure you are checking the correct field here
+    const userName = newBooking.user ? newBooking.user.name : null; // Access name after population
     if (!userName) {
       console.error("User name is not available in newBooking:", newBooking);
       return res.status(400).json({ message: "User name is not available." });
