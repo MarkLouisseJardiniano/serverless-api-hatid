@@ -325,15 +325,13 @@ router.post("/join/shared", async (req, res) => {
     res.status(500).json({ error: "Error joining the shared ride" });
   }
 });
-
-// Route to accept a co-passenger
 router.post("/accept-copassenger", async (req, res) => {
   try {
-    const { newBookingId } = req.body;
+    const { newBookingId, userId } = req.body; // Destructure userId from the request body
 
     // Ensure all required fields are present
-    if (!newBookingId) {
-      return res.status(400).json({ message: "New Booking ID is required." });
+    if (!newBookingId || !userId) {
+      return res.status(400).json({ message: "New Booking ID and User ID are required." });
     }
 
     // Find the new booking that is being accepted, and populate the user's name
@@ -350,16 +348,15 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Check if the user's name and ID are populated correctly
-    const userName = newBooking.user ? newBooking.user.name : null; // Access user name correctly
-    const userId = newBooking.user ? newBooking.user._id : null; // Access user ID correctly
-    if (!userName || !userId) {
-      return res.status(400).json({ message: "User name or ID is not available." });
+    // Check if the user's name is populated correctly
+    const userName = newBooking.user ? newBooking.user.name : null;
+    if (!userName) {
+      return res.status(400).json({ message: "User name is not available." });
     }
 
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
-      userId: userId, // Add the user's ID
+      userId: userId, // Add userId from request body
       name: userName,  // Use the populated name from the user object
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
@@ -386,9 +383,6 @@ router.post("/accept-copassenger", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
-
-
 
 router.post("/accept", async (req, res) => {
   try {
