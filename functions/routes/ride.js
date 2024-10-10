@@ -324,8 +324,7 @@ router.post("/join/shared", async (req, res) => {
     console.error("Error joining ride:", error);
     res.status(500).json({ error: "Error joining the shared ride" });
   }
-});
-router.post("/accept-copassenger", async (req, res) => {
+});router.post("/accept-copassenger", async (req, res) => {
   try {
     const { newBookingId, userId } = req.body; // Destructure userId from the request body
 
@@ -334,19 +333,25 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "New Booking ID and User ID are required." });
     }
 
-    // Find the new booking that is being accepted, and populate the user's name
-    const newBooking = await Booking.findById(newBookingId).populate('user', 'name');
+    // Find the new booking that is being accepted
+    const newBooking = await Booking.findById(newBookingId);
 
     // Check if newBooking exists
     if (!newBooking) {
       return res.status(404).json({ message: "New booking not found." });
     }
 
-    console.log("New booking details with populated user:", JSON.stringify(newBooking, null, 2));
+    console.log("New booking details:", JSON.stringify(newBooking, null, 2));
 
-    // Fetch user details to confirm it's correct
+    // Fetch the user details to get the name
     const user = await User.findById(userId);
-    console.log("User details:", user);
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const userName = user.name; // Get the user's name directly from the User model
+    console.log("User name:", userName);
 
     // Ensure the parent booking is a shared ride
     const parentBooking = await Booking.findById(newBooking.parentBooking);
@@ -354,17 +359,10 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Check if the user's name is populated correctly
-    const userName = newBooking.user ? newBooking.user.name : null;
-    if (!userName) {
-      console.error("User name is not available in newBooking:", newBooking);
-      return res.status(400).json({ message: "User name is not available." });
-    }
-
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
       userId: userId, // Add userId from request body
-      name: userName,  // Use the populated name from the user object
+      name: userName,  // Use the name fetched directly from the User model
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
       fare: newBooking.fare,
