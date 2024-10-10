@@ -324,34 +324,25 @@ router.post("/join/shared", async (req, res) => {
     console.error("Error joining ride:", error);
     res.status(500).json({ error: "Error joining the shared ride" });
   }
-});router.post("/accept-copassenger", async (req, res) => {
+});
+router.post("/accept-copassenger", async (req, res) => {
   try {
-    const { newBookingId, userId } = req.body; // Destructure userId from the request body
+    const { newBookingId } = req.body; // Only need the booking ID from the request
 
-    // Ensure all required fields are present
-    if (!newBookingId || !userId) {
-      return res.status(400).json({ message: "New Booking ID and User ID are required." });
+    // Ensure newBookingId is present
+    if (!newBookingId) {
+      return res.status(400).json({ message: "New Booking ID is required." });
     }
 
-    // Find the new booking that is being accepted
-    const newBooking = await Booking.findById(newBookingId);
+    // Find the new booking that is being accepted and populate the user's name
+    const newBooking = await Booking.findById(newBookingId).populate('user', 'name');
 
     // Check if newBooking exists
     if (!newBooking) {
       return res.status(404).json({ message: "New booking not found." });
     }
 
-    console.log("New booking details:", JSON.stringify(newBooking, null, 2));
-
-    // Fetch the user details to get the name
-    const user = await User.findById(userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    const userName = user.name; // Get the user's name directly from the User model
-    console.log("User name:", userName);
+    console.log("New booking details with populated user:", JSON.stringify(newBooking, null, 2));
 
     // Ensure the parent booking is a shared ride
     const parentBooking = await Booking.findById(newBooking.parentBooking);
@@ -359,10 +350,12 @@ router.post("/join/shared", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
+    // Check if the user's name is populated correctly
+  
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
-      userId: userId, // Add userId from request body
-      name: userName,  // Use the name fetched directly from the User model
+      userId: newBooking.user._id, // Add userId from the populated booking
+      name: newBooking.name,  // Use the populated name from the user object
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
       fare: newBooking.fare,
