@@ -472,6 +472,88 @@ router.post("/cancel", async (req, res) => {
   }
 });
 
+router.post("/onboard", async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+
+    // Log incoming request data for debugging
+    console.log("Received request to update booking to 'on board':", bookingId);
+
+    if (!bookingId) {
+      console.error("Booking ID is missing in the request body");
+      return res.status(400).json({ message: "Booking ID is required" });
+    }
+
+    // Find the booking by its ID
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      console.error("Booking not found for ID:", bookingId);
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.status !== "accepted") {
+      console.error(`Booking is not in 'accepted' status, unable to set to 'on board'. Current status: ${booking.status}`);
+      return res.status(400).json({ message: "Booking is not available for 'on board' status" });
+    }
+
+    // Update the booking status to "on board"
+    booking.status = "On board";
+    const updatedBooking = await booking.save();
+
+    // Log successful status update
+    console.log("Booking status updated to 'on board':", updatedBooking);
+
+    res.status(200).json({ status: "ok", data: updatedBooking });
+  } catch (error) {
+    // Log any errors for debugging
+    console.error("Error updating booking to 'on board':", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+
+router.post("/dropoff", async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+
+    // Log incoming request data for debugging
+    console.log("Received request to drop off booking:", bookingId);
+
+    if (!bookingId) {
+      console.error("Booking ID is missing in the request body");
+      return res.status(400).json({ message: "Booking ID is required" });
+    }
+
+    // Find the booking by its ID
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      console.error("Booking not found for ID:", bookingId);
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.status !== "On board") {
+      console.error(`Booking is not in 'on board' status, unable to drop off. Current status: ${booking.status}`);
+      return res.status(400).json({ message: "Booking is not available for drop-off" });
+    }
+
+    // Update the booking status to "dropped off"
+    booking.status = "Dropped off";
+    const updatedBooking = await booking.save();
+
+    // Log successful status update
+    console.log("Booking status updated to dropped off:", updatedBooking);
+
+    res.status(200).json({ status: "ok", data: updatedBooking });
+  } catch (error) {
+    // Log any errors for debugging
+    console.error("Error updating booking to dropped off:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+
 router.post("/complete", async (req, res) => {
   try {
     const { bookingId } = req.body;
