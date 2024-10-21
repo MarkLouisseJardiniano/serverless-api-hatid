@@ -471,39 +471,43 @@ router.post("/cancel", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 router.post("/onboard", async (req, res) => {
   try {
-    const { bookingId } = req.body;
+    // Retrieve bookingId from query parameters
+    const bookingId = req.query.bookingId;
 
     // Log incoming request data for debugging
     console.log("Received request to update booking to 'on board':", bookingId);
 
+    // Check if bookingId is provided
     if (!bookingId) {
-      console.error("Booking ID is missing in the request body");
+      console.error("Booking ID is missing in the request query");
       return res.status(400).json({ message: "Booking ID is required" });
     }
 
     // Find the booking by its ID
     const booking = await Booking.findById(bookingId);
 
+    // Check if the booking exists
     if (!booking) {
       console.error("Booking not found for ID:", bookingId);
       return res.status(404).json({ message: "Booking not found" });
     }
 
+    // Check if the booking status is accepted
     if (booking.status !== "accepted") {
       console.error(`Booking is not in 'accepted' status, unable to set to 'on board'. Current status: ${booking.status}`);
       return res.status(400).json({ message: "Booking is not available for 'on board' status" });
     }
 
-    // Update the booking status to "on board"
+    // Update the booking status to "On board"
     booking.status = "On board";
     const updatedBooking = await booking.save();
 
     // Log successful status update
     console.log("Booking status updated to 'on board':", updatedBooking);
 
+    // Respond with success
     res.status(200).json({ status: "ok", data: updatedBooking });
   } catch (error) {
     // Log any errors for debugging
