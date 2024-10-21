@@ -516,6 +516,39 @@ router.post("/onboard", async (req, res) => {
   }
 });
 
+router.post("/copassenger/onboard", async (req, res) => {
+  try {
+    const { bookingId, copassengerId } = req.body;
+
+    console.log("Received request to update copassenger to 'on board':", { bookingId, copassengerId });
+
+    if (!bookingId || !copassengerId) {
+      return res.status(400).json({ message: "Booking ID and Copassenger ID are required" });
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    const copassenger = booking.copassengers.find(c => c._id.toString() === copassengerId);
+    if (!copassenger) {
+      return res.status(404).json({ message: "Copassenger not found" });
+    }
+
+    if (copassenger.status === "accepted") {
+      copassenger.status = "On board"; // Update copassenger status
+      await booking.save(); // Save only the booking with updated copassenger status
+    }
+
+    res.status(200).json({ status: "ok", data: booking });
+  } catch (error) {
+    console.error("Error updating copassenger to 'on board':", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+
 
 router.post("/dropoff", async (req, res) => {
   try {
