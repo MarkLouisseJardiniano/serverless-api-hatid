@@ -596,30 +596,39 @@ router.post("/dropoff", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 router.post("/copassenger/dropoff", async (req, res) => {
   try {
-    const { bookingId } = req.body;
+    const { copassengerId } = req.body; // Using copassengerId instead
 
-    if (!bookingId) {
-      return res.status(400).json({ message: "Booking ID are required" });
+    if (!copassengerId) {
+      return res.status(400).json({ message: "Copassenger ID is required" });
     }
 
-    const booking = await Booking.findById(bookingId);
-    if (!booking || booking.status !== "On board") {
-      return res.status(400).json({ message: "Booking not available" });
+    // Find the booking containing the copassenger
+    const booking = await Booking.findOne({ "copassengers._id": copassengerId });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found for the provided copassenger ID" });
     }
 
-    booking.status = "Dropped off";
-    const updatedBooking = await booking.save();
+    // Find the copassenger and update their status
+    const copassenger = booking.copassengers.find(c => c._id.toString() === copassengerId);
+    if (!copassenger) {
+      return res.status(404).json({ message: "Copassenger not found" });
+    }
 
-    res.status(200).json({ status: "ok", data: updatedBooking });
+    if (copassenger.status === "On board") {
+      copassenger.status = "Dropped off";
+      await booking.save(); // Save the updated booking
+    } else {
+      return res.status(400).json({ message: "Copassenger is not on board" });
+    }
+
+    res.status(200).json({ status: "ok", data: booking });
   } catch (error) {
-    console.error("Error completing booking:", error);
+    console.error("Error completing dropoff:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 
 router.post("/complete", async (req, res) => {
