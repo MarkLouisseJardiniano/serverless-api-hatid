@@ -599,23 +599,23 @@ router.post("/dropoff", async (req, res) => {
 
 router.post("/copassenger/dropoff", async (req, res) => {
   try {
-    const { copassengerId } = req.body;
+    const { bookingId } = req.body;
 
-    if (!copassengerId) {
-      return res.status(400).json({ message: "Copassenger ID are required" });
+    if (!bookingId) {
+      return res.status(400).json({ message: "Booking ID are required" });
     }
 
-    const copassenger = await Booking.findById(copassengerId);
-    if (!copassenger || copassenger.status !== "On board") {
+    const booking = await Booking.findById(bookingId);
+    if (!booking || booking.status !== "On board") {
       return res.status(400).json({ message: "Booking not available" });
     }
 
-    copassenger.status = "Dropped off";
-    const updatedBooking = await copassenger.save();
+    booking.status = "Dropped off";
+    const updatedBooking = await booking.save();
 
     res.status(200).json({ status: "ok", data: updatedBooking });
   } catch (error) {
-    console.error("Error dropoff booking:", error);
+    console.error("Error completing booking:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
