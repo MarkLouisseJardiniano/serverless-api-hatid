@@ -329,14 +329,14 @@ router.post("/join/shared", async (req, res) => {
 
 router.post("/accept-copassenger", async (req, res) => {
   try {
-    const { newBookingId } = req.body; // Only need the booking ID from the request
+    const { newBookingId } = req.body;
 
     // Ensure newBookingId is present
     if (!newBookingId) {
       return res.status(400).json({ message: "New Booking ID is required." });
     }
 
-    // Find the new booking that is being accepted and populate the user's name
+    // Find the new booking and populate user name
     const newBooking = await Booking.findById(newBookingId).populate('user', 'name');
 
     // Check if newBooking exists
@@ -352,22 +352,26 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Calculate new fare for the co-passenger (for example, applying a 30% discount)
-    const discountedFare = (newBooking.fare * 0.7).toFixed(2); // Assuming a 30% discount
+    // Calculate new fare for the co-passenger (30% discount)
+    const discountedFare = (newBooking.fare * 0.7).toFixed(2); // Assuming a 30% discount for the co-passenger
 
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
       userId: newBooking.user._id,
-      name: newBooking.user.name,  // Use the populated name from the user object
+      name: newBooking.user.name,
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
-      fare: discountedFare, // Save the discounted fare
+      fare: discountedFare,
       rideType: newBooking.rideType,
       status: "accepted",
     });
 
+    // Update the fare of the parent booking with a 30% discount
+    const parentDiscountedFare = (parentBooking.fare * 0.7).toFixed(2);
+    parentBooking.fare = parentDiscountedFare; // Update total fare for the parent booking
+
     // Update the status and fare of the new booking
-    newBooking.status = "accepted"; // Update status
+    newBooking.status = "accepted";
     newBooking.fare = discountedFare; // Update fare
     await newBooking.save(); // Save the updated booking
 
