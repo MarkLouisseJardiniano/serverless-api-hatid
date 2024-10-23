@@ -325,6 +325,8 @@ router.post("/join/shared", async (req, res) => {
     res.status(500).json({ error: "Error joining the shared ride" });
   }
 });
+
+
 router.post("/accept-copassenger", async (req, res) => {
   try {
     const { newBookingId } = req.body; // Only need the booking ID from the request
@@ -350,21 +352,23 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Check if the user's name is populated correctly
-  
+    // Calculate new fare for the co-passenger (for example, applying a 30% discount)
+    const discountedFare = (newBooking.fare * 0.7).toFixed(2); // Assuming a 30% discount
+
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
-      userId: newBooking.user._id, // Add userId from the populated booking
-      name: newBooking.name,  // Use the populated name from the user object
+      userId: newBooking.user._id,
+      name: newBooking.user.name,  // Use the populated name from the user object
       pickupLocation: newBooking.pickupLocation,
       destinationLocation: newBooking.destinationLocation,
-      fare: newBooking.fare,
+      fare: discountedFare, // Save the discounted fare
       rideType: newBooking.rideType,
       status: "accepted",
     });
 
-    // Update the status of the new booking
+    // Update the status and fare of the new booking
     newBooking.status = "accepted"; // Update status
+    newBooking.fare = discountedFare; // Update fare
     await newBooking.save(); // Save the updated booking
 
     // Save the updated parent booking
