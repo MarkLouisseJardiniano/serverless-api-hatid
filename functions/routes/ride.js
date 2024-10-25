@@ -17,8 +17,6 @@ router.get("/booking", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
-
 router.get("/available", async (req, res) => {
   try {
     const { driverId } = req.query;
@@ -45,18 +43,14 @@ router.get("/available", async (req, res) => {
       status: { $in: ["accepted", "rejected"] }
     }).sort({ updatedAt: -1 });
 
-    // Build the base query to find pending rides
+    // Build the query to find pending special and shared rides with "Create" action
     const query = {
       status: "pending",
       vehicleType: vehicleType,
-      rideType: { $in: ["Special", "Shared Ride"] }
+      rideType: { $in: ["Special", "Shared Ride"] }, // Fetch only 'Special' and 'Shared' rides
+      ...(rideType === "Shared Ride" && { rideAction: "Create" }) // Include 'rideAction' only for 'Shared Ride'
     };
-
-    // Add the `rideAction` condition only for 'Shared Ride'
-    if (query.rideType.includes("Shared Ride")) {
-      query.rideAction = "Create";
-    }
-
+    
     // If the driver has a current booking, exclude it
     if (currentBooking) {
       query._id = { $ne: currentBooking._id };
@@ -72,7 +66,6 @@ router.get("/available", async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
 
 
 router.get("/available/shared", async (req, res) => {
