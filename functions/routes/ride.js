@@ -47,10 +47,13 @@ router.get("/available", async (req, res) => {
     const query = {
       status: "pending",
       vehicleType: vehicleType,
-      rideType: { $in: ["Special", "Shared Ride"] }, // Fetch only 'Special' and 'Shared' rides
-      ...(rideType === "Shared Ride" && { rideAction: "Create" }) // Include 'rideAction' only for 'Shared Ride'
+      $or: [
+        { rideType: "Special" },
+        { rideType: "Shared Ride", rideAction: "Create" }
+      ]
     };
-    
+
+
     // If the driver has a current booking, exclude it
     if (currentBooking) {
       query._id = { $ne: currentBooking._id };
