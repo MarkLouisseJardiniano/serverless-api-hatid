@@ -651,7 +651,7 @@ router.post("/complete", async (req, res) => {
 
     // Find the main booking
     const booking = await Booking.findById(bookingId).populate('copassengers.userId');
-    if (!booking || booking.status !== "accepted") {
+    if (!booking || booking.status !== "Dropped off") {
       return res.status(400).json({ message: "Booking not available" });
     }
 
