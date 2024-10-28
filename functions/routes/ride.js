@@ -639,8 +639,7 @@ router.post("/copassenger/dropoff", async (req, res) => {
     console.error("Error completing dropoff:", error);
     res.status(500).json({ message: "Server Error" });
   }
-});
-router.post("/complete", async (req, res) => {
+});router.post("/complete", async (req, res) => {
   try {
     const { bookingId } = req.body;
 
@@ -661,10 +660,15 @@ router.post("/complete", async (req, res) => {
     // If there are co-passengers, update their status
     if (booking.copassengers && booking.copassengers.length > 0) {
       const copassengerIds = booking.copassengers.map(copassenger => copassenger._id);
-      await Booking.updateMany(
-        { _id: { $in: copassengerIds } }, // Match all co-passenger bookings
+      
+      const result = await Booking.updateMany(
+        { _id: { $in: copassengerIds }, status: "Dropped off" }, // Check if status is Dropped off
         { $set: { status: "completed" } } // Update their status to completed
       );
+
+      if (result.nModified === 0) {
+        console.warn("No copassenger bookings were updated.");
+      }
     }
 
     res.status(200).json({ status: "ok", data: booking });
@@ -673,6 +677,7 @@ router.post("/complete", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 // Get booking by ID and populate driver information
 router.get("/booking/:id", async (req, res) => {
