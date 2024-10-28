@@ -656,12 +656,11 @@ router.post("/complete", async (req, res) => {
     // Update the main booking to completed
     booking.status = "completed";
 
-    // If there are co-passengers, update their status to completed
+    // Update each copassenger's status to completed
     if (booking.copassengers && booking.copassengers.length > 0) {
-      booking.copassengers = booking.copassengers.map(copassenger => ({
-        ...copassenger,
-        status: "completed" // Update each copassenger's status
-      }));
+      booking.copassengers.forEach(copassenger => {
+        copassenger.status = "completed";
+      });
     }
 
     // Save the updated main booking with completed copassengers
@@ -673,6 +672,7 @@ router.post("/complete", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 
 
