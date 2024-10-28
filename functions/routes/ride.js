@@ -566,8 +566,6 @@ router.post("/copassenger/onboard", async (req, res) => {
 });
 
 
-
-
 router.post("/dropoff", async (req, res) => {
   try {
     const { bookingId } = req.body;
@@ -639,7 +637,9 @@ router.post("/copassenger/dropoff", async (req, res) => {
     console.error("Error completing dropoff:", error);
     res.status(500).json({ message: "Server Error" });
   }
-});router.post("/complete", async (req, res) => {
+});
+
+router.post("/complete", async (req, res) => {
   try {
     const { bookingId } = req.body;
 
@@ -655,21 +655,17 @@ router.post("/copassenger/dropoff", async (req, res) => {
 
     // Update the main booking to completed
     booking.status = "completed";
-    await booking.save();
 
-    // If there are co-passengers, update their status
+    // If there are co-passengers, update their status to completed
     if (booking.copassengers && booking.copassengers.length > 0) {
-      const copassengerIds = booking.copassengers.map(copassenger => copassenger._id);
-      
-      const result = await Booking.updateMany(
-        { _id: { $in: copassengerIds }, status: "Dropped off" }, // Check if status is Dropped off
-        { $set: { status: "completed" } } // Update their status to completed
-      );
-
-      if (result.nModified === 0) {
-        console.warn("No copassenger bookings were updated.");
-      }
+      booking.copassengers = booking.copassengers.map(copassenger => ({
+        ...copassenger,
+        status: "completed" // Update each copassenger's status
+      }));
     }
+
+    // Save the updated main booking with completed copassengers
+    await booking.save();
 
     res.status(200).json({ status: "ok", data: booking });
   } catch (error) {
@@ -677,6 +673,7 @@ router.post("/copassenger/dropoff", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 
 // Get booking by ID and populate driver information
