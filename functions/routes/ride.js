@@ -641,29 +641,40 @@ router.post("/copassenger/dropoff", async (req, res) => {
   }
 });
 
-
 router.post("/complete", async (req, res) => {
   try {
     const { bookingId } = req.body;
 
     if (!bookingId) {
-      return res.status(400).json({ message: "Booking ID are required" });
+      return res.status(400).json({ message: "Booking ID is required" });
     }
 
-    const booking = await Booking.findById(bookingId);
+    // Find the main booking
+    const booking = await Booking.findById(bookingId).populate('copassengers.userId');
     if (!booking || booking.status !== "accepted") {
       return res.status(400).json({ message: "Booking not available" });
     }
 
+    // Update the main booking to completed
     booking.status = "completed";
-    const updatedBooking = await booking.save();
+    await booking.save();
 
-    res.status(200).json({ status: "ok", data: updatedBooking });
+    // If there are co-passengers, update their status
+    if (booking.copassengers && booking.copassengers.length > 0) {
+      const copassengerIds = booking.copassengers.map(copassenger => copassenger._id);
+      await Booking.updateMany(
+        { _id: { $in: copassengerIds } }, // Match all co-passenger bookings
+        { $set: { status: "completed" } } // Update their status to completed
+      );
+    }
+
+    res.status(200).json({ status: "ok", data: booking });
   } catch (error) {
     console.error("Error completing booking:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
 // Get booking by ID and populate driver information
 router.get("/booking/:id", async (req, res) => {
   try {
