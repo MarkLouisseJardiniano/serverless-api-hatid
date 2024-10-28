@@ -640,7 +640,6 @@ router.post("/copassenger/dropoff", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-
 router.post("/complete", async (req, res) => {
   try {
     const { bookingId } = req.body;
@@ -649,8 +648,8 @@ router.post("/complete", async (req, res) => {
       return res.status(400).json({ message: "Booking ID is required" });
     }
 
-    // Find the main booking
-    const booking = await Booking.findById(bookingId).populate('copassengers.userId');
+    // Find the main booking without populating co-passenger user details
+    const booking = await Booking.findById(bookingId);
     if (!booking || booking.status !== "Dropped off") {
       return res.status(400).json({ message: "Booking not available" });
     }
