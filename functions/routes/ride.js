@@ -639,17 +639,17 @@ router.post("/copassenger/dropoff", async (req, res) => {
   }
 });
 
-
 router.post("/complete", async (req, res) => {
   try {
     const { bookingId } = req.body;
 
+    // Check if bookingId is provided
     if (!bookingId) {
       return res.status(400).json({ message: "Booking ID is required" });
     }
 
-    // Find the main booking as a plain object
-    const booking = await Booking.findById(bookingId).lean();
+    // Find the main booking without populating co-passenger user details
+    const booking = await Booking.findById(bookingId);
     if (!booking || booking.status !== "Dropped off") {
       return res.status(400).json({ message: "Booking not available" });
     }
@@ -657,26 +657,23 @@ router.post("/complete", async (req, res) => {
     // Update the main booking to completed
     booking.status = "completed";
 
-    // Update each copassenger's status to completed
+    // Update each co-passenger's status to completed
     if (booking.copassengers && booking.copassengers.length > 0) {
-      booking.copassengers = booking.copassengers.map(copassenger => ({
-        ...copassenger,
-        status: "completed"
-      }));
+      booking.copassengers.forEach(copassenger => {
+        copassenger.status = "completed";
+      });
     }
 
-    // Save the updated main booking
-    await Booking.updateOne({ _id: bookingId }, { status: "completed", copassengers: booking.copassengers });
+    // Save the updated main booking with completed co-passengers
+    const updatedBooking = await booking.save(); // Ensure the booking is saved
 
-    // Return the plain object without cyclical references
-    res.status(200).json({ status: "ok", data: booking });
+    // Return the updated booking data
+    res.status(200).json({ status: "ok", data: updatedBooking });
   } catch (error) {
     console.error("Error completing booking:", error);
     res.status(500).json({ message: "Server Error" });
   }
 });
-
-
 
 
 // Get booking by ID and populate driver information
