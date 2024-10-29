@@ -639,6 +639,7 @@ router.post("/copassenger/dropoff", async (req, res) => {
   }
 });
 
+
 router.post("/complete", async (req, res) => {
   try {
     const { bookingId } = req.body;
@@ -647,8 +648,8 @@ router.post("/complete", async (req, res) => {
       return res.status(400).json({ message: "Booking ID is required" });
     }
 
-    // Find the main booking without populating co-passenger user details
-    const booking = await Booking.findById(bookingId);
+    // Find the main booking as a plain object
+    const booking = await Booking.findById(bookingId).lean();
     if (!booking || booking.status !== "Dropped off") {
       return res.status(400).json({ message: "Booking not available" });
     }
@@ -658,14 +659,16 @@ router.post("/complete", async (req, res) => {
 
     // Update each copassenger's status to completed
     if (booking.copassengers && booking.copassengers.length > 0) {
-      booking.copassengers.forEach(copassenger => {
-        copassenger.status = "completed";
-      });
+      booking.copassengers = booking.copassengers.map(copassenger => ({
+        ...copassenger,
+        status: "completed"
+      }));
     }
 
-    // Save the updated main booking with completed copassengers
-    await booking.save();
+    // Save the updated main booking
+    await Booking.updateOne({ _id: bookingId }, { status: "completed", copassengers: booking.copassengers });
 
+    // Return the plain object without cyclical references
     res.status(200).json({ status: "ok", data: booking });
   } catch (error) {
     console.error("Error completing booking:", error);
