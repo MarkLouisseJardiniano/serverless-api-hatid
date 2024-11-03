@@ -484,19 +484,22 @@ router.post("/cancel", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-router.post("/create/special", async (req, res) => {
+app.post("/create/special", async (req, res) => {
   const { userId, pickupLocation, destinationLocation, vehicleType, rideType, fare, pushToken } = req.body;
 
+  // Check if all required fields are provided
   if (!userId || !pickupLocation || !destinationLocation || !vehicleType || !rideType || fare == null) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
+    // Find the user in the database
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
+    // Create a new booking
     const newBooking = new Booking({
       name: user.name,
       user: userId,
@@ -506,16 +509,24 @@ router.post("/create/special", async (req, res) => {
       rideType: "Special",
       fare,
       status: "pending",
-      pushToken,
     });
 
+    // Save the booking to the database
     await newBooking.save();
+
+    // Store the push token associated with the new booking's ID
+    if (pushToken) {
+      pushTokens[newBooking._id] = pushToken; // Store the push token in memory
+      console.log(`Push token for booking ${newBooking._id} saved:`, pushToken);
+    }
+
     res.status(201).json(newBooking);
   } catch (error) {
     console.error("Error creating booking:", error);
     res.status(500).json({ error: "Error creating booking" });
   }
 });
+
 
 
 router.post("/onboard", async (req, res) => {
