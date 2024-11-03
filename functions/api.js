@@ -14,8 +14,6 @@ const violateRouter = require("./routes/violation");
 const savedPlacesRouter = require("./routes/savedPlaces");
 const contactRouter = require("./routes/contacts");
 
-const notificationRoutes = require('./routes/ride'); // Import the routes
-
 const app = express();
 const server = http.createServer(app);
 
@@ -38,7 +36,5 @@ app.use("/.netlify/functions/api/rate", ratingRouter);
 app.use("/.netlify/functions/api/violate", violateRouter);
 app.use("/.netlify/functions/api/saved", savedPlacesRouter);
 app.use("/.netlify/functions/api/contact", contactRouter);
-app.use("/.netlify/functions/api/notification", notificationRoutes);
-
 
 module.exports.handler = serverless(app);
