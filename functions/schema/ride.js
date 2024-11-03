@@ -37,6 +37,7 @@ const bookingSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  pushToken: { type: String, required: false },
   copassengers: [
     {
       userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -76,6 +77,7 @@ const bookingSchema = new mongoose.Schema({
     enum: ["pending", "accepted", "Arrived" ,"On board", "Dropped off", "completed", "canceled"],
     default: "pending",
   },
+  
   createdAt: { type: Date, default: Date.now },
 });
 
