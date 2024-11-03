@@ -37,7 +37,11 @@ const bookingSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  pushToken: { type: String, required: false },
+  pushToken: { 
+    type: String, 
+    required: true
+  },
+
   copassengers: [
     {
       userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -59,14 +63,22 @@ const bookingSchema = new mongoose.Schema({
       rideAction: {
         type: String,
         enum: ["Join"],
-        required: function() {
+        required: function () {
           return this.rideType === "Shared Ride"; // Only required if rideType is "Shared Ride"
         },
         default: "Join", // Default to "Join" if rideType is "Shared Ride"
       },
       status: {
         type: String,
-        enum: ["pending", "accepted","Arrived", "On board", "Dropped off", "completed", "canceled"],
+        enum: [
+          "pending",
+          "accepted",
+          "Arrived",
+          "On board",
+          "Dropped off",
+          "completed",
+          "canceled",
+        ],
         default: "pending",
       },
     },
@@ -74,10 +86,18 @@ const bookingSchema = new mongoose.Schema({
   parentBooking: { type: mongoose.Schema.Types.ObjectId, ref: "Booking" }, // Reference to the parent booking
   status: {
     type: String,
-    enum: ["pending", "accepted", "Arrived" ,"On board", "Dropped off", "completed", "canceled"],
+    enum: [
+      "pending",
+      "accepted",
+      "Arrived",
+      "On board",
+      "Dropped off",
+      "completed",
+      "canceled",
+    ],
     default: "pending",
   },
-  
+
   createdAt: { type: Date, default: Date.now },
 });
 
