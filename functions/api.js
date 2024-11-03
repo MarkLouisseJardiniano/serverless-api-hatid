@@ -13,7 +13,7 @@ const ratingRouter = require("./routes/ratingsAndFeedback");
 const violateRouter = require("./routes/violation");
 const savedPlacesRouter = require("./routes/savedPlaces");
 const contactRouter = require("./routes/contacts");
-const WebSocket = require('ws');
+
 const notificationRoutes = require('./routes/ride'); // Import the routes
 const { clients } = require('./utils/notification');
 

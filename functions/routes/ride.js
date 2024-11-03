@@ -4,7 +4,8 @@ const Booking = require("../schema/ride");
 const Driver = require("../schema/drivers");
 const User = require("../schema/auth");
 const Fare = require("../schema/fare")
-const { sendNotification } = require('../utils/notification');
+const { Expo } = require('expo-server-sdk');
+let expo = new Expo();
 const JWT_SECRET = "IWEFHsdfIHCW362weg47HGV3GB4678{]JKAsadFIH";
 const authenticateUser = require("../middleware/verify");
 
@@ -484,19 +485,33 @@ router.post("/cancel", async (req, res) => {
   }
 });
 
-router.post('/arrived', (req, res) => {
-  const { userId, bookingId } = req.body;
+router.post('/arrived', async (req, res) => {
+  const { pushToken, bookingId } = req.body;
 
-  if (!userId || !bookingId) {
-    return res.status(400).json({ message: "User ID and Booking ID are required" });
+  if (!Expo.isExpoPushToken(pushToken)) {
+    return res.status(400).json({ message: "Invalid push token" });
   }
 
   const message = `Your ride has arrived for booking ID: ${bookingId}`;
-  sendNotification(userId, message);
 
-  res.status(200).json({ message: "Notification sent successfully" });
+  let messages = [];
+  messages.push({
+    to: pushToken,
+    sound: 'default',
+    body: message,
+    data: { bookingId },
+  });
+
+  // Send notifications
+  try {
+    const ticketChunk = await expo.sendPushNotificationsAsync(messages);
+    console.log(ticketChunk);
+    res.status(200).json({ message: "Notification sent successfully" });
+  } catch (error) {
+    console.error("Error sending notification:", error);
+    res.status(500).json({ message: "Error sending notification" });
+  }
 });
-
 
 router.post("/onboard", async (req, res) => {
   try {
