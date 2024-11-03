@@ -484,7 +484,7 @@ router.post("/cancel", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-app.post("/create/special", async (req, res) => {
+router.post("/create/special", async (req, res) => {
   const { userId, pickupLocation, destinationLocation, vehicleType, rideType, fare, pushToken } = req.body;
 
   // Check if all required fields are provided
