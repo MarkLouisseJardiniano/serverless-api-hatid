@@ -15,27 +15,16 @@ const savedPlacesRouter = require("./routes/savedPlaces");
 const contactRouter = require("./routes/contacts");
 
 const notificationRoutes = require('./routes/ride'); // Import the routes
-const { clients } = require('./utils/notification');
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+
 
 const dbCloudUrl = "mongodb+srv://Mawi:Mawi21@cluster0.twni9tv.mongodb.net/Hatid?retryWrites=true&w=majority&appName=Cluster0";
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-wss.on('connection', (ws, req) => {
-  const userId = req.url.split('?userId=')[1];
-  clients.set(userId, ws);
-
-  ws.on('close', () => {
-    clients.delete(userId);
-  });
-});
-
 
 mongoose.connect(dbCloudUrl)
   .then(() => console.log("Connected to MongoDB"))
