@@ -65,7 +65,7 @@ const bookingSchema = new mongoose.Schema({
       },
       status: {
         type: String,
-        enum: ["pending", "accepted", "On board", "Dropped off", "completed", "canceled"],
+        enum: ["pending", "accepted","Arrived", "On board", "Dropped off", "completed", "canceled"],
         default: "pending",
       },
     },
@@ -73,7 +73,7 @@ const bookingSchema = new mongoose.Schema({
   parentBooking: { type: mongoose.Schema.Types.ObjectId, ref: "Booking" }, // Reference to the parent booking
   status: {
     type: String,
-    enum: ["pending", "accepted","On board", "Dropped off", "completed", "canceled"],
+    enum: ["pending", "accepted", "Arrived" ,"On board", "Dropped off", "completed", "canceled"],
     default: "pending",
   },
   createdAt: { type: Date, default: Date.now },

@@ -4,6 +4,7 @@ const Booking = require("../schema/ride");
 const Driver = require("../schema/drivers");
 const User = require("../schema/auth");
 const Fare = require("../schema/fare")
+const { sendNotification } = require('../utils/notification');
 const JWT_SECRET = "IWEFHsdfIHCW362weg47HGV3GB4678{]JKAsadFIH";
 const authenticateUser = require("../middleware/verify");
 
@@ -482,6 +483,21 @@ router.post("/cancel", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+router.post('/arrived', (req, res) => {
+  const { userId, bookingId } = req.body;
+
+  if (!userId || !bookingId) {
+    return res.status(400).json({ message: "User ID and Booking ID are required" });
+  }
+
+  const message = `Your ride has arrived for booking ID: ${bookingId}`;
+  sendNotification(userId, message);
+
+  res.status(200).json({ message: "Notification sent successfully" });
+});
+
+
 router.post("/onboard", async (req, res) => {
   try {
     // Retrieve bookingId from query parameters
@@ -605,6 +621,8 @@ router.post("/dropoff", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+
 router.post("/copassenger/dropoff", async (req, res) => {
   try {
     const { copassengerId } = req.body; // Using copassengerId instead

@@ -13,16 +13,29 @@ const ratingRouter = require("./routes/ratingsAndFeedback");
 const violateRouter = require("./routes/violation");
 const savedPlacesRouter = require("./routes/savedPlaces");
 const contactRouter = require("./routes/contacts");
-
+const WebSocket = require('ws');
+const notificationRoutes = require('./routes/ride'); // Import the routes
+const { clients } = require('./utils/notification');
 
 const app = express();
 const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
 
 const dbCloudUrl = "mongodb+srv://Mawi:Mawi21@cluster0.twni9tv.mongodb.net/Hatid?retryWrites=true&w=majority&appName=Cluster0";
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+wss.on('connection', (ws, req) => {
+  const userId = req.url.split('?userId=')[1];
+  clients.set(userId, ws);
+
+  ws.on('close', () => {
+    clients.delete(userId);
+  });
+});
+
 
 mongoose.connect(dbCloudUrl)
   .then(() => console.log("Connected to MongoDB"))
@@ -36,5 +49,7 @@ app.use("/.netlify/functions/api/rate", ratingRouter);
 app.use("/.netlify/functions/api/violate", violateRouter);
 app.use("/.netlify/functions/api/saved", savedPlacesRouter);
 app.use("/.netlify/functions/api/contact", contactRouter);
+app.use("/.netlify/functions/api/notification", notificationRoutes);
+
 
 module.exports.handler = serverless(app);
