@@ -506,7 +506,7 @@ router.post("/create/special", async (req, res) => {
       rideType: "Special",
       fare,
       status: "pending",
-      pushToken, // Save the push token here
+      pushToken,
     });
 
     await newBooking.save();

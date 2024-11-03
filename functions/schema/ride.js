@@ -39,7 +39,6 @@ const bookingSchema = new mongoose.Schema({
   },
   pushToken: { 
     type: String, 
-    required: true
   },
 
   copassengers: [
