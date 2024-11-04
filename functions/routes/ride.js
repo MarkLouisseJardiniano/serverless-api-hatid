@@ -828,5 +828,13 @@ router.get("/booking/:id/passenger-token", async (req, res) => {
   }
 });
 
+app.post('/driver-location', async (req, res) => {
+  const { driverId, latitude, longitude } = req.body;
+
+  // Save the driver's location in your database
+  await DriverModel.updateOne({ _id: driverId }, { currentLocation: { latitude, longitude } });
+
+  res.status(200).send({ message: 'Location updated successfully' });
+});
 
 module.exports = router;
