@@ -93,7 +93,6 @@ const bookingSchema = new mongoose.Schema({
     ],
     default: "pending",
   },
-pushToken: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 

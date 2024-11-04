@@ -484,22 +484,20 @@ router.post("/cancel", async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 });
-router.post("/create/special", async (req, res) => {
-  const { userId, pickupLocation, destinationLocation, vehicleType, rideType, fare, pushToken } = req.body;
 
-  // Check if all required fields are provided
+router.post("/create/special", async (req, res) => {
+  const { userId, pickupLocation, destinationLocation, vehicleType, rideType, fare } = req.body;
+
   if (!userId || !pickupLocation || !destinationLocation || !vehicleType || !rideType || fare == null) {
     return res.status(400).json({ error: "All fields are required" });
   }
 
   try {
-    // Find the user in the database
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Create a new booking
     const newBooking = new Booking({
       name: user.name,
       user: userId,
@@ -511,15 +509,7 @@ router.post("/create/special", async (req, res) => {
       status: "pending",
     });
 
-    // Save the booking to the database
     await newBooking.save();
-
-    // Store the push token associated with the new booking's ID
-    if (pushToken) {
-      pushTokens[newBooking._id] = pushToken; // Store the push token in memory
-      console.log(`Push token for booking ${newBooking._id} saved:`, pushToken);
-    }
-
     res.status(201).json(newBooking);
   } catch (error) {
     console.error("Error creating booking:", error);
@@ -527,6 +517,49 @@ router.post("/create/special", async (req, res) => {
   }
 });
 
+router.post("/arrived", async (req, res) => {
+  try {
+    const bookingId = req.query.bookingId;
+
+    // Log incoming request data for debugging
+    console.log("Received request to update booking to 'on board':", bookingId);
+
+    // Check if bookingId is provided
+    if (!bookingId) {
+      console.error("Booking ID is missing in the request query");
+      return res.status(400).json({ message: "Booking ID is required" });
+    }
+
+    // Find the booking by its ID
+    const booking = await Booking.findById(bookingId);
+
+    // Check if the booking exists
+    if (!booking) {
+      console.error("Booking not found for ID:", bookingId);
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Check if the booking status is accepted
+    if (booking.status !== "accepted") {
+      console.error(`Booking is not in 'accepted' status, unable to set to 'on board'. Current status: ${booking.status}`);
+      return res.status(400).json({ message: "Booking is not available for 'on board' status" });
+    }
+
+    // Update the booking status to "On board"
+    booking.status = "Arrived";
+    const updatedBooking = await booking.save();
+
+    // Log successful status update
+    console.log("Booking status updated to 'Arrived':", updatedBooking);
+
+    // Respond with success
+    res.status(200).json({ status: "ok", data: updatedBooking });
+  } catch (error) {
+    // Log any errors for debugging
+    console.error("Error updating booking to 'on board':", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
 
 
 router.post("/onboard", async (req, res) => {
@@ -553,8 +586,8 @@ router.post("/onboard", async (req, res) => {
     }
 
     // Check if the booking status is accepted
-    if (booking.status !== "accepted") {
-      console.error(`Booking is not in 'accepted' status, unable to set to 'on board'. Current status: ${booking.status}`);
+    if (booking.status !== "Arrived") {
+      console.error(`Booking is not in 'arrived' status, unable to set to 'on board'. Current status: ${booking.status}`);
       return res.status(400).json({ message: "Booking is not available for 'on board' status" });
     }
 
