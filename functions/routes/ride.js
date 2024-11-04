@@ -851,7 +851,7 @@ router.post("/update-driver-location", async (req, res) => {
 
 router.get('/driver-location/:driverId', (req, res) => {
   const { driverId } = req.params;
-  const location = driverLocations[driverId];
+  const location = driverLocation[driverId];
   if (location) {
     res.json(location);
   } else {
