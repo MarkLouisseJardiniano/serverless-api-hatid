@@ -828,13 +828,25 @@ router.get("/booking/:id/passenger-token", async (req, res) => {
   }
 });
 
-router.post('/driver-location', async (req, res) => {
-  const { driverId, latitude, longitude } = req.body;
+router.post("/update-driver-location", async (req, res) => {
+  const { bookingId, latitude, longitude } = req.body;
 
-  // Save the driver's location in your database
-  await DriverModel.updateOne({ _id: driverId }, { currentLocation: { latitude, longitude } });
+  try {
+    const booking = await Booking.findByIdAndUpdate(
+      bookingId,
+      { driverLocation: { latitude, longitude } },
+      { new: true } // Returns the updated document
+    );
 
-  res.status(200).send({ message: 'Location updated successfully' });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    res.status(200).json({ message: "Driver location updated", booking });
+  } catch (error) {
+    console.error("Error updating driver location:", error);
+    res.status(500).json({ message: "Error updating driver location", error });
+  }
 });
 
 router.get('/driver-location/:driverId', (req, res) => {
