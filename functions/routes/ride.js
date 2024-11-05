@@ -828,5 +828,43 @@ router.get("/booking/:id/passenger-token", async (req, res) => {
   }
 });
 
+router.post("/update-driver-location", async (req, res) => {
+  const { driverId, latitude, longitude } = req.body;
+
+  try {
+    const booking = await Booking.findOneAndUpdate(
+      { driverId }, // Find by driverId
+      { driverLocation: { latitude, longitude } },
+      { new: true } // Return the updated document
+    );
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found for this driver" });
+    }
+
+    res.status(200).json({ message: "Driver location updated", booking });
+  } catch (error) {
+    console.error("Error updating driver location:", error);
+    res.status(500).json({ message: "Error updating driver location", error });
+  }
+});
+
+router.get('/driver-location/:driverId', async (req, res) => {
+  const { driverId } = req.params;
+
+  try {
+    const booking = await Booking.findOne({ driverId }, 'driverLocation'); // Only retrieve the driverLocation field
+
+    if (booking && booking.driverLocation) {
+      res.status(200).json({ driverLocation: booking.driverLocation });
+    } else {
+      res.status(404).json({ message: 'Driver location not found' });
+    }
+  } catch (error) {
+    console.error("Error retrieving driver location:", error);
+    res.status(500).json({ message: "Error retrieving driver location", error });
+  }
+});
+
 
 module.exports = router;
