@@ -853,7 +853,7 @@ router.get('/driver-location/:driverId', async (req, res) => {
   const { driverId } = req.params;
 
   try {
-    const booking = await Booking.findOne({ driverId }, 'driverLocation'); // Only retrieve the driverLocation field
+    const booking = await Booking.findOne({driver:driverId }, 'driverLocation'); // Only retrieve the driverLocation field
 
     if (booking && booking.driverLocation) {
       res.status(200).json({ driverLocation: booking.driverLocation });
