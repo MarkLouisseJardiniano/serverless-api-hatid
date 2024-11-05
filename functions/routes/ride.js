@@ -865,6 +865,21 @@ router.get('/driver-location/:driverId', async (req, res) => {
     res.status(500).json({ message: "Error retrieving driver location", error });
   }
 });
+router.post('/update-booking', async (req, res) => {
+  const bookingId = req.body._id; // Get the booking ID from request body
+
+  try {
+      const updatedBooking = await Booking.findByIdAndUpdate(bookingId, req.body, { new: true });
+      if (updatedBooking) {
+          return res.status(200).json(updatedBooking);
+      } else {
+          return res.status(404).json({ message: 'Booking not found.' });
+      }
+  } catch (error) {
+      console.error("Error updating booking:", error);
+      return res.status(500).json({ message: "Error updating booking", error });
+  }
+});
 
 
 module.exports = router;
