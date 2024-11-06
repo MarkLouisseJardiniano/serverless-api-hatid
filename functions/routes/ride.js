@@ -218,63 +218,7 @@ router.post("/create/shared", async (req, res) => {
     res.status(500).json({ error: "Error creating booking" });
   }
 });
-// Join an existing shared ride
-router.post("/join/shared", async (req, res) => {
-  const { bookingId, userId, pickupLocation, destinationLocation, vehicleType, fare } = req.body;
 
-  // Validate required fields
-  if (!bookingId || !userId || !pickupLocation || !destinationLocation || !vehicleType || fare == null) {
-    return res.status(400).json({ error: "All fields are required" });
-  }
-
-  try {
-    const existingBooking = await Booking.findById(bookingId);
-    if (!existingBooking) {
-      return res.status(404).json({ error: "Booking not found" });
-    }
-
-    // Check if the booking is a shared ride that is in 'Create' mode
-    if (existingBooking.rideType !== "Shared Ride" || existingBooking.rideAction === "Join") {
-      return res.status(400).json({ error: "You can only join a shared ride that is in 'Create' status." });
-    }
-
-    // Ensure the driver has accepted the ride
-    if (existingBooking.status !== "accepted") { // Fixed logical error
-      return res.status(403).json({ error: "You cannot join this ride until the driver has accepted it." });
-    }
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    // Create a new booking for the joining passenger
-    const newBooking = new Booking({
-      name: user.name,
-      user: userId,
-      pickupLocation,
-      destinationLocation,
-      vehicleType,
-      rideType: "Shared Ride", // Keep rideType as shared
-      rideAction: "Join", // Set action to Join
-      fare,
-      status: "pending",
-      parentBooking: existingBooking._id, // Link to the parent shared ride
-    });
-
-    await newBooking.save();
-    res.status(201).json({ 
-      status: "ok", 
-      message: "Successfully joined the shared ride", 
-      bookingId: newBooking._id,
-      name: user.name 
-    });
-  } catch (error) {
-    console.error("Error joining ride:", error);
-    res.status(500).json({ error: "Error joining the shared ride" });
-  }
-});
-// Route to join a shared ride
 router.post("/join/shared", async (req, res) => {
   const { bookingId, userId, pickupLocation, destinationLocation, vehicleType, fare } = req.body;
 
