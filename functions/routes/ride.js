@@ -295,8 +295,8 @@ router.post("/join/shared", async (req, res) => {
     }
 
     // Ensure the driver has accepted the ride
-    if (existingBooking.status !== "accepted") {
-      return res.status(403).json({ error: "You cannot join this ride until the driver has accepted it." });
+if (!["accepted", "Arrived", "On board"].includes(existingBooking.status)) {
+      return res.status(403).json({ error: "You cannot join this ride until the driver has accepted, arrived, or is on board." });
     }
 
     const user = await User.findById(userId);
@@ -541,8 +541,8 @@ router.post("/arrived", async (req, res) => {
 
     // Check if the booking status is accepted
     if (booking.status !== "accepted") {
-      console.error(`Booking is not in 'accepted' status, unable to set to 'on board'. Current status: ${booking.status}`);
-      return res.status(400).json({ message: "Booking is not available for 'on board' status" });
+      console.error(`Booking is not in 'accepted' status, unable to set to 'arrived'. Current status: ${booking.status}`);
+      return res.status(400).json({ message: "Booking is not available for 'arrived' status" });
     }
 
     // Update the booking status to "On board"
