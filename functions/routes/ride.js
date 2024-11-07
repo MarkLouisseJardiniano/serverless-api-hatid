@@ -318,7 +318,8 @@ router.post("/accept-copassenger", async (req, res) => {
     if (!parentBooking.isDiscounted) {
       const parentDiscountedFare = (parentBooking.fare * 0.7).toFixed(2); // 30% discount on parent fare
       parentBooking.fare = parentDiscountedFare; // Update the parent booking's fare
-      parentBooking.isDiscounted = true; // Mark the parent as discounted to prevent further discounts
+      parentBooking.isDiscounted = true;
+      await parentBooking.save();  // Mark the parent as discounted to prevent further discounts
     }
 
     // Update the status and fare of the new booking
