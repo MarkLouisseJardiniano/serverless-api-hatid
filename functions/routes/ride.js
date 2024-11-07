@@ -325,6 +325,9 @@ router.post("/accept-copassenger", async (req, res) => {
     newBooking.fare = discountedFare; // Update the new booking's fare with the co-passenger discount
     await newBooking.save(); // Save the updated new booking
 
+    // Save the updated parent booking (with potential discount)
+    await parentBooking.save();
+
     return res.status(200).json({
       status: "ok",
       message: "Co-passenger accepted and added to the booking.",
@@ -506,41 +509,56 @@ router.post("/arrived", async (req, res) => {
 
 router.post("/copassenger/arrived", async (req, res) => {
   try {
-      // Destructure copassengerId from the request body
-      const { copassengerId } = req.body;
+    // Destructure copassengerId from the request body
+    const { copassengerId } = req.body;
 
-      console.log("Received request to update copassenger to 'on board':", { copassengerId });
+    console.log("Received request to update copassenger to 'on board':", { copassengerId });
 
-      // Validate that copassengerId is provided
-      if (!copassengerId) {
-          return res.status(400).json({ message: "Copassenger ID is required" });
-      }
+    // Validate that copassengerId is provided
+    if (!copassengerId) {
+      return res.status(400).json({ message: "Copassenger ID is required" });
+    }
 
-      // Find the booking containing the copassenger
-      const booking = await Booking.findOne({ "copassengers._id": copassengerId });
-      if (!booking) {
-          return res.status(404).json({ message: "Booking not found for the provided copassenger ID" });
-      }
+    // Find the booking containing the copassenger
+    const booking = await Booking.findOne({ "copassengers._id": copassengerId });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found for the provided copassenger ID" });
+    }
 
-      // Find the copassenger in the booking's copassengers array
-      const copassenger = booking.copassengers.find(c => c._id.toString() === copassengerId);
-      if (!copassenger) {
-          return res.status(404).json({ message: "Copassenger not found" });
-      }
+    // Find the copassenger in the booking's copassengers array
+    const copassenger = booking.copassengers.find(c => c._id.toString() === copassengerId);
+    if (!copassenger) {
+      return res.status(404).json({ message: "Copassenger not found" });
+    }
 
-      // Only update the copassenger's status if they are currently accepted
-      if (copassenger.status === "accepted") {
-          copassenger.status = "Arrived"; // Update the copassenger's status
-          await booking.save(); // Save the booking with the updated copassenger status
-          return res.status(200).json({ status: "ok", copassenger });
-        } else {
-          return res.status(400).json({ message: "Copassenger is not in 'accepted' status" });
+    // Only update the copassenger's status if they are currently accepted
+    if (copassenger.status === "accepted") {
+      copassenger.status = "Arrived"; // Update the copassenger's status
+
+      // Save the updated booking (with the copassenger's status changed)
+      await booking.save();
+
+      // Now, find the parent booking and update the copassenger status there as well
+      const parentBooking = await Booking.findById(booking.parentBooking);
+      if (parentBooking) {
+        // Update the status of the copassenger in the parent booking
+        const parentCopassenger = parentBooking.copassengers.find(c => c._id.toString() === copassengerId);
+        if (parentCopassenger) {
+          parentCopassenger.status = "Arrived"; // Update the parent booking's co-passenger status
+          await parentBooking.save(); // Save the parent booking with updated co-passenger status
         }
+      }
+
+      return res.status(200).json({ status: "ok", copassenger });
+    } else {
+      return res.status(400).json({ message: "Copassenger is not in 'accepted' status" });
+    }
   } catch (error) {
-      console.error("Error updating copassenger to 'on board':", error);
-      res.status(500).json({ message: "Server Error" });
+    console.error("Error updating copassenger to 'on board':", error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
+
 
 router.post("/onboard", async (req, res) => {
   try {
