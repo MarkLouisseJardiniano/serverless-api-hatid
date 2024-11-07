@@ -311,6 +311,7 @@ router.post("/accept-copassenger", async (req, res) => {
       fare: discountedFare,
       rideType: newBooking.rideType,
       status: "accepted",
+      newBookingId: newBooking._id,
     });
 
     // Apply discount to the parent booking fare only if it's the first co-passenger
