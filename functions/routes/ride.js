@@ -274,7 +274,6 @@ if (!["accepted", "Arrived", "On board"].includes(existingBooking.status)) {
     res.status(500).json({ error: "Error joining the shared ride" });
   }
 });
-
 router.post("/accept-copassenger", async (req, res) => {
   try {
     const { newBookingId } = req.body;
@@ -300,7 +299,7 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Calculate new fare for the co-passenger (30% discount)
+    // Calculate the new co-passenger's fare (30% discount)
     const discountedFare = (newBooking.fare * 0.7).toFixed(2); // 30% discount for the co-passenger
 
     // Add co-passenger details to the parent booking
@@ -315,19 +314,17 @@ router.post("/accept-copassenger", async (req, res) => {
     });
 
     // Apply discount to the parent booking fare only if it's the first co-passenger
-    if (!parentBooking.isDiscounted) {
+    if (parentBooking.copassengers.length === 1) {  // First co-passenger
       const parentDiscountedFare = (parentBooking.fare * 0.7).toFixed(2); // 30% discount on parent fare
       parentBooking.fare = parentDiscountedFare; // Update the parent booking's fare
-      parentBooking.isDiscounted = true;
-      await parentBooking.save();  // Mark the parent as discounted to prevent further discounts
     }
 
-    // Update the status and fare of the new booking
+    // Update the status and fare of the new booking (co-passenger's booking)
     newBooking.status = "accepted";
-    newBooking.fare = discountedFare; // Update the new booking's fare
+    newBooking.fare = discountedFare; // Update the new booking's fare with the co-passenger discount
     await newBooking.save(); // Save the updated new booking
 
-    // Save the updated parent booking
+    // Save the updated parent booking (with potential discount)
     await parentBooking.save();
 
     return res.status(200).json({
@@ -341,6 +338,7 @@ router.post("/accept-copassenger", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
+
 
 router.post("/accept", async (req, res) => {
   try {
