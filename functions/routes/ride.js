@@ -275,7 +275,6 @@ if (!["accepted", "Arrived", "On board"].includes(existingBooking.status)) {
   }
 });
 
-
 router.post("/accept-copassenger", async (req, res) => {
   try {
     const { newBookingId } = req.body;
@@ -302,7 +301,7 @@ router.post("/accept-copassenger", async (req, res) => {
     }
 
     // Calculate new fare for the co-passenger (30% discount)
-    const discountedFare = (newBooking.fare * 0.7).toFixed(2); // Assuming a 30% discount for the co-passenger
+    const discountedFare = (newBooking.fare * 0.7).toFixed(2); // 30% discount for the co-passenger
 
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
@@ -315,14 +314,17 @@ router.post("/accept-copassenger", async (req, res) => {
       status: "accepted",
     });
 
-    // Update the fare of the parent booking with a 30% discount
-    const parentDiscountedFare = (parentBooking.fare * 0.7).toFixed(2);
-    parentBooking.fare = parentDiscountedFare; // Update total fare for the parent booking
+    // Apply discount to the parent booking fare only if it's the first co-passenger
+    if (!parentBooking.isDiscounted) {
+      const parentDiscountedFare = (parentBooking.fare * 0.7).toFixed(2); // 30% discount on parent fare
+      parentBooking.fare = parentDiscountedFare; // Update the parent booking's fare
+      parentBooking.isDiscounted = true; // Mark the parent as discounted to prevent further discounts
+    }
 
     // Update the status and fare of the new booking
     newBooking.status = "accepted";
-    newBooking.fare = discountedFare; // Update fare
-    await newBooking.save(); // Save the updated booking
+    newBooking.fare = discountedFare; // Update the new booking's fare
+    await newBooking.save(); // Save the updated new booking
 
     // Save the updated parent booking
     await parentBooking.save();
@@ -338,7 +340,6 @@ router.post("/accept-copassenger", async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
-
 
 router.post("/accept", async (req, res) => {
   try {
