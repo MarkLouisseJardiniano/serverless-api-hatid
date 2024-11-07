@@ -533,10 +533,10 @@ router.post("/copassenger/arrived", async (req, res) => {
       if (copassenger.status === "accepted") {
           copassenger.status = "Arrived"; // Update the copassenger's status
           await booking.save(); // Save the booking with the updated copassenger status
-      }
-
-      // Respond with success
-      res.status(200).json({ status: "ok", data: booking });
+          return res.status(200).json({ status: "ok", copassenger });
+        } else {
+          return res.status(400).json({ message: "Copassenger is not in 'accepted' status" });
+        }
   } catch (error) {
       console.error("Error updating copassenger to 'on board':", error);
       res.status(500).json({ message: "Server Error" });
