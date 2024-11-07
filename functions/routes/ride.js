@@ -332,6 +332,7 @@ router.post("/accept-copassenger", async (req, res) => {
       status: "ok",
       message: "Co-passenger accepted and added to the booking.",
       booking: parentBooking,
+      newBookingId: newBooking._id,
     });
 
   } catch (error) {
