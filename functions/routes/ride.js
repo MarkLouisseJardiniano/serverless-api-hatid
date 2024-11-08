@@ -274,6 +274,8 @@ if (!["accepted", "Arrived", "On board"].includes(existingBooking.status)) {
     res.status(500).json({ error: "Error joining the shared ride" });
   }
 });
+
+
 router.post("/accept-copassenger", async (req, res) => {
   try {
     const { newBookingId } = req.body;
@@ -299,11 +301,12 @@ router.post("/accept-copassenger", async (req, res) => {
       return res.status(400).json({ message: "Cannot accept a co-passenger in a non-shared ride." });
     }
 
-    // Calculate the new co-passenger's fare (30% discount)
-    const discountedFare = (newBooking.fare * 0.7).toFixed(2); // 30% discount for the co-passenger
+    // Calculate new fare for the co-passenger (30% discount)
+    const discountedFare = (newBooking.fare * 0.7).toFixed(2); // Assuming a 30% discount for the co-passenger
 
     // Add co-passenger details to the parent booking
     parentBooking.copassengers.push({
+        _id: newBooking._id, 
       userId: newBooking.user._id,
       name: newBooking.user.name,
       pickupLocation: newBooking.pickupLocation,
@@ -311,28 +314,24 @@ router.post("/accept-copassenger", async (req, res) => {
       fare: discountedFare,
       rideType: newBooking.rideType,
       status: "accepted",
-      newBookingId: newBooking._id,
     });
 
-    // Apply discount to the parent booking fare only if it's the first co-passenger
-    if (parentBooking.copassengers.length === 1) {  // First co-passenger
-      const parentDiscountedFare = (parentBooking.fare * 0.7).toFixed(2); // 30% discount on parent fare
-      parentBooking.fare = parentDiscountedFare; // Update the parent booking's fare
-    }
+    // Update the fare of the parent booking with a 30% discount
+    const parentDiscountedFare = (parentBooking.fare * 0.7).toFixed(2);
+    parentBooking.fare = parentDiscountedFare; // Update total fare for the parent booking
 
-    // Update the status and fare of the new booking (co-passenger's booking)
+    // Update the status and fare of the new booking
     newBooking.status = "accepted";
-    newBooking.fare = discountedFare; // Update the new booking's fare with the co-passenger discount
-    await newBooking.save(); // Save the updated new booking
+    newBooking.fare = discountedFare; // Update fare
+    await newBooking.save(); // Save the updated booking
 
-    // Save the updated parent booking (with potential discount)
+    // Save the updated parent booking
     await parentBooking.save();
 
     return res.status(200).json({
       status: "ok",
       message: "Co-passenger accepted and added to the booking.",
       booking: parentBooking,
-      newBookingId: newBooking._id,
     });
 
   } catch (error) {
@@ -509,56 +508,41 @@ router.post("/arrived", async (req, res) => {
 
 router.post("/copassenger/arrived", async (req, res) => {
   try {
-    // Destructure copassengerId from the request body
-    const { copassengerId } = req.body;
+      // Destructure copassengerId from the request body
+      const { copassengerId } = req.body;
 
-    console.log("Received request to update copassenger to 'on board':", { copassengerId });
+      console.log("Received request to update copassenger to 'on board':", { copassengerId });
 
-    // Validate that copassengerId is provided
-    if (!copassengerId) {
-      return res.status(400).json({ message: "Copassenger ID is required" });
-    }
-
-    // Find the booking containing the copassenger
-    const booking = await Booking.findOne({ "copassengers._id": copassengerId });
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found for the provided copassenger ID" });
-    }
-
-    // Find the copassenger in the booking's copassengers array
-    const copassenger = booking.copassengers.find(c => c._id.toString() === copassengerId);
-    if (!copassenger) {
-      return res.status(404).json({ message: "Copassenger not found" });
-    }
-
-    // Only update the copassenger's status if they are currently accepted
-    if (copassenger.status === "accepted") {
-      copassenger.status = "Arrived"; // Update the copassenger's status
-
-      // Save the updated booking (with the copassenger's status changed)
-      await booking.save();
-
-      // Now, find the parent booking and update the copassenger status there as well
-      const parentBooking = await Booking.findById(booking.parentBooking);
-      if (parentBooking) {
-        // Update the status of the copassenger in the parent booking
-        const parentCopassenger = parentBooking.copassengers.find(c => c._id.toString() === copassengerId);
-        if (parentCopassenger) {
-          parentCopassenger.status = "Arrived"; // Update the parent booking's co-passenger status
-          await parentBooking.save(); // Save the parent booking with updated co-passenger status
-        }
+      // Validate that copassengerId is provided
+      if (!copassengerId) {
+          return res.status(400).json({ message: "Copassenger ID is required" });
       }
 
-      return res.status(200).json({ status: "ok", copassenger });
-    } else {
-      return res.status(400).json({ message: "Copassenger is not in 'accepted' status" });
-    }
+      // Find the booking containing the copassenger
+      const booking = await Booking.findOne({ "copassengers._id": copassengerId });
+      if (!booking) {
+          return res.status(404).json({ message: "Booking not found for the provided copassenger ID" });
+      }
+
+      // Find the copassenger in the booking's copassengers array
+      const copassenger = booking.copassengers.find(c => c._id.toString() === copassengerId);
+      if (!copassenger) {
+          return res.status(404).json({ message: "Copassenger not found" });
+      }
+
+      // Only update the copassenger's status if they are currently accepted
+      if (copassenger.status === "accepted") {
+          copassenger.status = "Arrived"; // Update the copassenger's status
+          await booking.save(); // Save the booking with the updated copassenger status
+      }
+
+      // Respond with success
+      res.status(200).json({ status: "ok", data: booking });
   } catch (error) {
-    console.error("Error updating copassenger to 'on board':", error);
-    res.status(500).json({ message: "Server Error" });
+      console.error("Error updating copassenger to 'on board':", error);
+      res.status(500).json({ message: "Server Error" });
   }
 });
-
 
 router.post("/onboard", async (req, res) => {
   try {
