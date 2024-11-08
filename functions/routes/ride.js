@@ -325,7 +325,7 @@ router.post("/accept-copassenger", async (req, res) => {
     newBooking.fare = discountedFare; // Update fare
     await newBooking.save(); // Save the updated booking
 
-
+await parentBooking.save()
     return res.status(200).json({
       status: "ok",
       message: "Co-passenger accepted and added to the booking.",
